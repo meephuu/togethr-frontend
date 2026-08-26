@@ -1,2 +1,2 @@
 # travel-companion-frontend
-Software Engineering Project
+Software Engineering Team Project
