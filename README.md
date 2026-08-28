@@ -60,13 +60,40 @@ Follow these steps to set up the frontend project on your local machine.
 ## 📁 Recommended Folder Structure
 ```text
 src/
-├── assets/        # Static assets (images, icons, etc.)
-├── components/    # Reusable UI components (Buttons, Cards, Navbar)
-├── pages/         # Page-level components (Home, Login, Search, Profile)
-├── services/      # API integration and HTTP requests
-├── contexts/      # React Context for global state (Auth, Theme)
-├── hooks/         # Custom React hooks
-├── styles/        # Global CSS/Tailwind styles
-├── App.jsx        # Root component
-└── main.jsx       # Entry point
+│
+├── assets/          # เก็บไฟล์รูปภาพ, ไอคอน, ฟอนต์
+├── components/      # UI Components ที่ใช้ซ้ำได้
+│   ├── common/      # เช่น Button, Modal, Input, Spinner
+│   └── layout/      # Navbar, Sidebar, Footer (แยกตาม Role)
+│
+├── contexts/        # React Context (หรือใช้ Redux/Zustand) สำหรับ State หลัก
+│   └── AuthContext.js # จัดการสถานะการ Login และเก็บข้อมูล User/Role
+│
+├── hooks/           # Custom Hooks 
+│   ├── useAuth.js   # ดึงข้อมูลผู้ใช้
+│   └── useChat.js   # จัดการ logic การแชท
+│
+├── pages/           # หน้าจอต่างๆ ของแอป (แบ่งตาม Role)
+│   ├── public/      # หน้าที่ทุกคนเข้าได้: Home, Login, Register, SearchServices
+│   ├── customer/    # หน้าของลูกค้า: CustomerProfile, MyBookings, Payment, Chat
+│   ├── provider/    # หน้าของผู้ให้บริการ: ProviderDashboard, MyServices, ManageBookings
+│   └── admin/       # หน้าของแอดมิน: AdminDashboard, ManageReports, ResolveDisputes
+│
+├── routes/          # จัดการ React Router
+│   ├── AppRoutes.jsx     # รวม Route ทั้งหมด
+│   ├── PrivateRoute.jsx  # ป้องกันหน้าที่ต้อง Login
+│   └── RoleRoute.jsx     # ป้องกันหน้าตาม Role (เช่น ต้องเป็น Provider ถึงเข้าได้)
+│
+├── services/        # ไฟล์สำหรับยิง API ไปหา Express.js (Axios)
+│   ├── api.js       # ตั้งค่า axios instance (แนบ Token)
+│   ├── authService.js
+│   ├── bookingService.js
+│   └── serviceService.js
+│
+├── utils/           # ฟังก์ชันช่วยเหลือต่างๆ
+│   ├── formatDate.js
+│   └── calculateRefund.js
+│
+├── App.jsx
+└── index.js
 ```
