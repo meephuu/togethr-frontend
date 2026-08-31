@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import RoleRoute from "./RoleRoute";
 import LoginPage from "../pages/public/LoginPage";
+import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
 
 // ==========================================
 // Temp Pages Import
@@ -37,6 +38,7 @@ export default function AppRoutes() {
                 {/* public */}
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/provider-registration" element={<ProviderRegistrationPage />} />
 
                 {/* customer */}
                 <Route element={<RoleRoute allowedRole="customer" />}>

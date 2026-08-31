@@ -16,7 +16,7 @@ const Button = ({
         primary:
             "bg-primary text-white hover:bg-primary-hover focus:ring-primary",
         secondary:
-            "bg-secondary text-text-muted border border-gray-200 hover:bg-gray-200 focus:ring-gray-300",
+            "bg-secondary text-text-muted border border-gray-200 hover:bg-gray-200 hover:text-text-main focus:ring-gray-300",
     };
 
     return (
