@@ -1,18 +1,59 @@
 import { useState } from "react";
 import Button from "../../../components/ui/Button";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function PersonalInfoPage({ formData, handleChange, onBack, onNext }) {
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        const newErrors = {};
+
+        if (!formData.firstName?.trim()) {
+            newErrors.firstName = "First name is required";
+        }
+
+        if (!formData.lastName?.trim()) {
+            newErrors.lastName = "Last name is required";
+        }
+
+        if (!formData.email?.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!emailRegex.test(formData.email)) {
+            newErrors.email = "Please enter a valid email address";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleNext = (e) => {
+        e.preventDefault();
+        if (validate()) {
+            onNext();
+        }
+        // if validate() returns false, errors state is already set — nothing more to do
+    };
+
+    // Clear a field's error as soon as the user starts fixing it
+    const handleFieldChange = (e) => {
+        handleChange(e);
+        if (errors[e.target.name]) {
+            setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-secondary px-4">
-            <div className="w-full max-w-sm h-[475px] bg-background rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
+            <div className="w-full max-w-sm min-h-[475px] bg-background rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
                 
                 {/* Header */}
-                <h1 className="text-2xl font-bold text-text-main mb-8 text-center">
+                <h1 className="text-xl text-text-main mb-8 text-center">
                     Register as a Provider
                 </h1>
 
                 {/* Form */}
-                <form className="flex flex-col flex-1 space-y-5">
+                <form className="flex flex-col flex-1 space-y-5" onSubmit={handleNext} noValidate>
                     {/* First Name */}
                     <div>
                         <label className="block text-sm font-medium text-text-main mb-2">
@@ -23,9 +64,14 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
                             name="firstName"
                             placeholder="Enter Your First Name"
                             value={formData.firstName}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            onChange={handleFieldChange}
+                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                                errors.firstName ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-primary"
+                            }`}
                         />
+                        {errors.firstName && (
+                            <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
+                        )}
                     </div>
 
                     {/* Last Name */}
@@ -38,9 +84,14 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
                             name="lastName"
                             placeholder="Enter Your Last Name"
                             value={formData.lastName}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            onChange={handleFieldChange}
+                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                                errors.lastName ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-primary"
+                            }`}
                         />
+                        {errors.lastName && (
+                            <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                        )}
                     </div>
 
                     {/* Email */}
@@ -53,9 +104,14 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
                             name="email"
                             placeholder="Enter Your Email Address"
                             value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            onChange={handleFieldChange}
+                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                                errors.email ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-primary"
+                            }`}
                         />
+                        {errors.email && (
+                            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                        )}
                     </div>
 
                     {/* Next Button */}
@@ -63,7 +119,7 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
                         <Button 
                             variant="primary" 
                             className="w-full"
-                            onClick={onNext}
+                            type="submit"
                         >
                             Next ➝
                         </Button>
