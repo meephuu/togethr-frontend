@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RoleRoute from "./RoleRoute";
 import LoginPage from "../pages/public/LoginPage";
 import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
+import HomePage from "../pages/public/HomePage";
+import SignUpPage from "../pages/public/SignUpPage";
 
 // ==========================================
 // Temp Pages Import
@@ -10,7 +12,7 @@ import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/P
 
 // Public Pages
 const Home = () => (
-    <div className="p-10 text-2xl font-bold">🏠 Home Page (Public)</div>
+    <HomePage />
 );
 
 // Customer Pages
@@ -37,6 +39,7 @@ export default function AppRoutes() {
             <Routes>
                 {/* public */}
                 <Route path="/" element={<Home />} />
+                <Route path="/sign-up" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/provider-registration" element={<ProviderRegistrationPage />} />
 
