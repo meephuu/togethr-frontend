@@ -1,15 +1,82 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import PasswordInput from "../../components/ui/PasswordInput";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const LoginPage = () => {
-    const [activeTab, setActiveTab] = useState("login");
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState(location.state?.tab === "signup" ? "signup" : "login");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [errors, setErrors] = useState({});
+
+    const switchTab = (tab) => {
+        setActiveTab(tab);
+        setErrors({}); // don't carry stale errors between login/signup
+    };
+
+    const validate = () => {
+        const newErrors = {};
+
+        if (!email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (!emailRegex.test(email)) {
+            newErrors.email = "Please enter a valid email address";
+        }
+
+        if (!password.trim()) {
+            newErrors.password = "Password is required";
+        } else if (password.length < 8) {
+            newErrors.password = "Password must be at least 8 characters";
+        }
+
+        if (activeTab === "signup") {
+            if (!confirmPassword.trim()) {
+                newErrors.confirmPassword = "Please re-enter your password";
+            } else if (password !== confirmPassword) {
+                newErrors.confirmPassword = "Passwords do not match";
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // mockup เฉยๆ ยังไม่มี logic
-        console.log("login clicked (mockup only)", { email, password });
+        if (!validate()) return;
+
+        if (activeTab === "login") {
+            // mockup เฉยๆ ยังไม่มี logic
+            console.log("login clicked (mockup only)", { email, password });
+        } else {
+            // mockup เฉยๆ ยังไม่มี logic
+            console.log("signup clicked (mockup only)", { email, password, confirmPassword });
+        }
+    };
+
+    const clearFieldError = (field) => {
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: undefined }));
+        }
+    };
+
+    const handleEmailChange = (e) => {
+        setEmail(e.target.value);
+        clearFieldError("email");
+    };
+
+    const handlePasswordChange = (e) => {
+        setPassword(e.target.value);
+        clearFieldError("password");
+    };
+
+    const handleConfirmPasswordChange = (e) => {
+        setConfirmPassword(e.target.value);
+        clearFieldError("confirmPassword");
     };
 
     return (
@@ -20,7 +87,7 @@ const LoginPage = () => {
                     <div className="inline-flex bg-secondary rounded-xl p-1 gap-1">
                         <button
                             type="button"
-                            onClick={() => setActiveTab("login")}
+                            onClick={() => switchTab("login")}
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                                 activeTab === "login"
                                     ? "bg-background text-text-main shadow-sm"
@@ -45,7 +112,7 @@ const LoginPage = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setActiveTab("signup")}
+                            onClick={() => switchTab("signup")}
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                                 activeTab === "signup"
                                     ? "bg-background text-text-main shadow-sm"
@@ -70,7 +137,7 @@ const LoginPage = () => {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                     <div>
                         <label
                             htmlFor="email"
@@ -83,9 +150,16 @@ const LoginPage = () => {
                             type="email"
                             placeholder="Enter Your Email Address"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            onChange={handleEmailChange}
+                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                                errors.email
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-200 focus:ring-primary"
+                            }`}
                         />
+                        {errors.email && (
+                            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                        )}
                     </div>
 
                     <div>
@@ -96,29 +170,56 @@ const LoginPage = () => {
                             >
                                 Password
                             </label>
-                            <button
-                                type="button"
-                                className="text-sm text-text-muted hover:text-primary transition-colors"
-                            >
-                                Forgot Password?
-                            </button>
+                            {activeTab === "login" && (
+                                <button
+                                    type="button"
+                                    className="text-sm text-text-muted hover:text-primary transition-colors"
+                                >
+                                    Forgot Password?
+                                </button>
+                            )}
                         </div>
-                        <input
+                        <PasswordInput
                             id="password"
-                            type="password"
+                            name="password"
                             placeholder="Enter Your Password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                            onChange={handlePasswordChange}
+                            error={errors.password}
                         />
+                        {errors.password && (
+                            <p className="text-red-500 text-xs mt-1 leading-tight">{errors.password}</p>
+                        )}
                     </div>
+
+                    {activeTab === "signup" && (
+                        <div>
+                            <label
+                                htmlFor="confirmPassword"
+                                className="block text-sm font-medium text-text-main mb-2"
+                            >
+                                Re-enter Password
+                            </label>
+                            <PasswordInput
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                placeholder="Re-enter Your Password"
+                                value={confirmPassword}
+                                onChange={handleConfirmPasswordChange}
+                                error={errors.confirmPassword}
+                            />
+                            {errors.confirmPassword && (
+                                <p className="text-red-500 text-xs mt-1 leading-tight">{errors.confirmPassword}</p>
+                            )}
+                        </div>
+                    )}
 
                     <Button
                         variant="primary"
                         className="w-full mt-3"
-                        onClick={handleSubmit}
+                        type="submit"
                     >
-                        Log In
+                        {activeTab === "login" ? "Log In" : "Sign Up"}
                     </Button>
                 </form>
             </div>
