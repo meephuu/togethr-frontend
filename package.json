@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run generate:api",
     "build": "vite build",
+    "generate:api": "openapi --input openapi.yaml --output src/services/generated --client axios --useOptions",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -26,6 +28,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.4",
     "globals": "^17.11.0",
+    "openapi-typescript-codegen": "^0.29.0",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2"

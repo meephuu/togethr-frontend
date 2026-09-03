@@ -1,15 +1,38 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import { useAuth } from "../../hooks/useAuth";
+import { ApiError, AuthService } from "../../services/generated";
 
 const LoginPage = () => {
-    const [activeTab, setActiveTab] = useState("login");
+    const navigate = useNavigate();
+    const { setUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // mockup เฉยๆ ยังไม่มี logic
-        console.log("login clicked (mockup only)", { email, password });
+        setErrorMessage("");
+        setIsSubmitting(true);
+
+        try {
+            const response = await AuthService.login({
+                requestBody: { email, password },
+            });
+
+            setUser(response.user);
+            navigate("/", { replace: true });
+        } catch (error) {
+            if (error instanceof ApiError) {
+                setErrorMessage(error.body?.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+            } else {
+                setErrorMessage("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -20,12 +43,7 @@ const LoginPage = () => {
                     <div className="inline-flex bg-secondary rounded-xl p-1 gap-1">
                         <button
                             type="button"
-                            onClick={() => setActiveTab("login")}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                activeTab === "login"
-                                    ? "bg-background text-text-main shadow-sm"
-                                    : "text-text-muted hover:text-text-main"
-                            }`}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-background text-text-main shadow-sm"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -45,12 +63,8 @@ const LoginPage = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setActiveTab("signup")}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                activeTab === "signup"
-                                    ? "bg-background text-text-main shadow-sm"
-                                    : "text-text-muted hover:text-text-main"
-                            }`}
+                            onClick={() => navigate("/sign-up")}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all text-text-muted hover:text-text-main"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -80,10 +94,14 @@ const LoginPage = () => {
                         </label>
                         <input
                             id="email"
+                            name="email"
                             type="email"
+                            autoComplete="email"
                             placeholder="Enter Your Email Address"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            disabled={isSubmitting}
+                            required
                             className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                     </div>
@@ -105,20 +123,31 @@ const LoginPage = () => {
                         </div>
                         <input
                             id="password"
+                            name="password"
                             type="password"
+                            autoComplete="current-password"
                             placeholder="Enter Your Password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            disabled={isSubmitting}
+                            required
                             className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                     </div>
 
+                    {errorMessage && (
+                        <p className="text-sm text-red-600" role="alert">
+                            {errorMessage}
+                        </p>
+                    )}
+
                     <Button
+                        type="submit"
                         variant="primary"
                         className="w-full mt-3"
-                        onClick={handleSubmit}
+                        disabled={isSubmitting}
                     >
-                        Log In
+                        {isSubmitting ? "Logging In..." : "Log In"}
                     </Button>
                 </form>
             </div>

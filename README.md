@@ -77,3 +77,26 @@ npm run dev       # Run the dev server
 ```
 
 Open the URL shown in the terminal in your browser (usually `http://localhost:5173`)
+
+## Generate the API client
+
+The typed client in `src/services/generated/` is generated from
+`openapi.yaml`. Regenerate it whenever the API contract changes:
+
+```bash
+npm run generate:api
+```
+
+Running `npm run build` also runs `generate:api` automatically through the
+`prebuild` script. This ensures that production builds always use a client
+matching the latest OpenAPI contract.
+
+The `src/services/` directory must not be added to `.gitignore` because it also
+contains manually maintained API configuration such as `src/services/api.js`.
+For this project, the generated files in `src/services/generated/` are committed
+to Git so a fresh clone can run immediately and generated API changes can be
+reviewed in pull requests. If the team decides not to commit generated files in
+the future, ignore only `src/services/generated/` and keep the `prebuild` script.
+
+API requests use `http://localhost:8080/api` by default. Set
+`VITE_API_BASE_URL` to use a different backend URL.
