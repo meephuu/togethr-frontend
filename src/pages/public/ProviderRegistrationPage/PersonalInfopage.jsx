@@ -9,6 +9,10 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
     const validate = () => {
         const newErrors = {};
 
+        if (!formData.username?.trim()) {
+            newErrors.username = "Username is required";
+        }
+
         if (!formData.firstName?.trim()) {
             newErrors.firstName = "First name is required";
         }
@@ -54,6 +58,26 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
 
                 {/* Form */}
                 <form className="flex flex-col flex-1 space-y-5" onSubmit={handleNext} noValidate>
+                    {/* Username */}
+                    <div>
+                        <label className="block text-sm font-medium text-text-main mb-2">
+                            Username
+                        </label>
+                        <input
+                            type="text"
+                            name="username"
+                            placeholder="Choose a username"
+                            value={formData.username}
+                            onChange={handleFieldChange}
+                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                                errors.username ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-primary"
+                            }`}
+                        />
+                        {errors.username && (
+                            <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+                        )}
+                    </div>
+
                     {/* First Name */}
                     <div>
                         <label className="block text-sm font-medium text-text-main mb-2">

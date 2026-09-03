@@ -10,6 +10,22 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class UsersService {
     /**
+     * Get the authenticated user's full profile
+     * @returns ProfileResponse Profile
+     * @throws ApiError
+     */
+    public static getMyProfile(): CancelablePromise<ProfileResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/users/me',
+            errors: {
+                401: `Authentication failed or is required`,
+                404: `Resource not found`,
+                500: `Unexpected server error`,
+            },
+        });
+    }
+    /**
      * Update the authenticated user's profile
      * @returns ProfileResponse Profile updated
      * @throws ApiError

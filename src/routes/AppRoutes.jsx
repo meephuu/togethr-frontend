@@ -5,6 +5,10 @@ import LoginPage from "../pages/public/LoginPage";
 import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
 import HomePage from "../pages/public/HomePage";
 import SignUpPage from "../pages/public/SignUpPage";
+import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
+import PublicProfilePage from "../pages/public/PublicProfilePage";
+import ProfileEditPage from "../pages/private/ProfileEditPage";
+import CookieConsentBanner from "../components/CookieConsentBanner";
 
 // ==========================================
 // Temp Pages Import
@@ -42,6 +46,9 @@ export default function AppRoutes() {
                 <Route path="/sign-up" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/provider-registration" element={<ProviderRegistrationPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/profile/edit" element={<ProfileEditPage />} />
+                <Route path="/profile/:id" element={<PublicProfilePage />} />
 
                 {/* customer */}
                 <Route element={<RoleRoute allowedRole="customer" />}>
@@ -61,6 +68,7 @@ export default function AppRoutes() {
 
                 <Route path="*" element={<Home />} />
             </Routes>
+            <CookieConsentBanner />
         </BrowserRouter>
     );
 }

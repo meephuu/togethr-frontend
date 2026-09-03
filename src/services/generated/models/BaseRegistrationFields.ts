@@ -4,6 +4,10 @@
 /* eslint-disable */
 import type { Gender } from './Gender';
 export type BaseRegistrationFields = {
+    /**
+     * Must be true — confirms the user has read and agreed to the Privacy Policy.
+     */
+    consent: boolean;
     username: string;
     email: string;
     password: string;

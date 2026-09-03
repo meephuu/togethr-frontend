@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "../../../components/ui/Button";
+import ConsentCheckbox from "../../../components/ui/ConsentCheckbox";
 
 function EyeIcon() {
     return (
@@ -21,7 +22,7 @@ function EyeOffIcon() {
     );
 }
 
-export default function PasswordPage({ formData, handleChange, onBack, onNext }) {
+export default function PasswordPage({ formData, handleChange, onBack, onNext, isSubmitting, apiError }) {
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,6 +42,10 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext })
             newErrors.confirmPassword = "Passwords do not match";
         }
 
+        if (!formData.consent) {
+            newErrors.consent = "You must agree to the Privacy Policy to sign up";
+        }
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -48,7 +53,7 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext })
     const handleNext = (e) => {
         e.preventDefault();
         if (validate()) {
-            onNext();
+            onNext(e);
         }
     };
 
@@ -130,22 +135,34 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext })
                         )}
                     </div>
 
+                    <ConsentCheckbox
+                        checked={!!formData.consent}
+                        onChange={handleFieldChange}
+                        error={errors.consent}
+                    />
+
+                    {apiError && (
+                        <p className="text-red-500 text-xs" role="alert">{apiError}</p>
+                    )}
+
                     {/* Button Container */}
                     <div className="flex gap-3 mt-auto">
-                        <Button 
+                        <Button
                             variant="secondary"
                             className="flex-1"
                             type="button"
                             onClick={onBack}
+                            disabled={isSubmitting}
                         >
                             ← Back
                         </Button>
-                        <Button 
+                        <Button
                             variant="primary"
                             className="flex-1"
                             type="submit"
+                            disabled={isSubmitting}
                         >
-                            Confirm
+                            {isSubmitting ? "Submitting..." : "Confirm"}
                         </Button>
                     </div>
                 </form>

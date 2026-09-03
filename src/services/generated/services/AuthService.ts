@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { LoginRequest } from '../models/LoginRequest';
 import type { LoginResponse } from '../models/LoginResponse';
+import type { LogoutResponse } from '../models/LogoutResponse';
 import type { RegisterProviderRequest } from '../models/RegisterProviderRequest';
 import type { RegisterProviderResponse } from '../models/RegisterProviderResponse';
 import type { RegisterRequest } from '../models/RegisterRequest';
@@ -75,6 +76,20 @@ export class AuthService {
             errors: {
                 400: `Invalid request`,
                 401: `Authentication failed or is required`,
+                500: `Unexpected server error`,
+            },
+        });
+    }
+    /**
+     * Log out and clear the session cookie
+     * @returns LogoutResponse Logged out
+     * @throws ApiError
+     */
+    public static logout(): CancelablePromise<LogoutResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/auth/logout',
+            errors: {
                 500: `Unexpected server error`,
             },
         });
