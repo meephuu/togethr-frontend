@@ -20,7 +20,7 @@ export default function HomePage() {
                     </p>
                     <div className='flex gap-4 justify-center'>
                         <button
-                            onClick={() => navigate('/sign-up')}
+                            onClick={() => navigate("/login")}
                             className='bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition'
                         >
                             Get Started
@@ -95,7 +95,9 @@ export default function HomePage() {
                     <h2 className='text-3xl font-bold text-white mb-6'>Ready to Start Your Journey?</h2>
                     <p className='text-blue-100 mb-8 text-lg'>Join thousands of travelers and guides discovering the world together</p>
                     <button
-                        onClick={() => navigate('/sign-up')}
+                        onClick={() =>
+                            navigate("/login", { state: { tab: "signup" } })
+                        }
                         className='bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition'
                     >
                         Sign Up Now
