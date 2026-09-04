@@ -4,7 +4,6 @@ import RoleRoute from "./RoleRoute";
 import LoginPage from "../pages/public/LoginPage";
 import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
 import HomePage from "../pages/public/HomePage";
-import SignUpPage from "../pages/public/SignUpPage";
 
 // ==========================================
 // Temp Pages Import
@@ -39,7 +38,6 @@ export default function AppRoutes() {
             <Routes>
                 {/* public */}
                 <Route path="/" element={<Home />} />
-                <Route path="/sign-up" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/provider-registration" element={<ProviderRegistrationPage />} />
 

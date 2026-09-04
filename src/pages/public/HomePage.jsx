@@ -10,7 +10,7 @@ export default function HomePage() {
             <Navbar />
 
             {/* Hero Section */}
-            <section className='px-4 py-20 bg-gradient-to-r from-blue-50 to-blue-100'>
+            <section className='px-4 py-20'>
                 <div className='max-w-4xl mx-auto text-center'>
                     <h1 className='text-5xl font-bold text-gray-900 mb-6'>
                         Don’t let the fear of <br />traveling alone keep you <br />from the world.
@@ -20,7 +20,7 @@ export default function HomePage() {
                     </p>
                     <div className='flex gap-4 justify-center'>
                         <button
-                            onClick={() => navigate('/sign-up')}
+                            onClick={() => navigate("/login")}
                             className='bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition'
                         >
                             Get Started
@@ -33,27 +33,27 @@ export default function HomePage() {
             </section>
 
             {/* Features Section */}
-            <section className='px-4 py-20'>
+            <section className='px-4 py-20 bg-gradient-to-r from-blue-50 to-blue-200'>
                 <div className='max-w-5xl mx-auto'>
                     <h2 className='text-3xl font-bold text-center text-gray-900 mb-12'>Why Choose Us?</h2>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
                         
                         {/* Feature 1 */}
-                        <div className='p-6 border border-gray-200 rounded-lg hover:shadow-lg transition'>
+                        <div className='p-6 border bg-white border-gray-200 rounded-lg hover:shadow-lg transition'>
                             <div className='text-4xl mb-4'>🌍</div>
                             <h3 className='text-xl font-bold text-gray-900 mb-2'>Explore Anywhere</h3>
                             <p className='text-gray-600'>Discover hidden gems and local experiences with authentic guides</p>
                         </div>
 
                         {/* Feature 2 */}
-                        <div className='p-6 border border-gray-200 rounded-lg hover:shadow-lg transition'>
+                        <div className='p-6 border bg-white border-gray-200 rounded-lg hover:shadow-lg transition'>
                             <div className='text-4xl mb-4'>👥</div>
                             <h3 className='text-xl font-bold text-gray-900 mb-2'>Meet Locals</h3>
                             <p className='text-gray-600'>Connect with travelers and guides who share your interests</p>
                         </div>
 
                         {/* Feature 3 */}
-                        <div className='p-6 border border-gray-200 rounded-lg hover:shadow-lg transition'>
+                        <div className='p-6 border bg-white border-gray-200 rounded-lg hover:shadow-lg transition'>
                             <div className='text-4xl mb-4'>💯</div>
                             <h3 className='text-xl font-bold text-gray-900 mb-2'>Verified Profiles</h3>
                             <p className='text-gray-600'>Trusted community with verified travelers and professional guides</p>
@@ -95,7 +95,9 @@ export default function HomePage() {
                     <h2 className='text-3xl font-bold text-white mb-6'>Ready to Start Your Journey?</h2>
                     <p className='text-blue-100 mb-8 text-lg'>Join thousands of travelers and guides discovering the world together</p>
                     <button
-                        onClick={() => navigate('/sign-up')}
+                        onClick={() =>
+                            navigate("/login", { state: { tab: "signup" } })
+                        }
                         className='bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition'
                     >
                         Sign Up Now
