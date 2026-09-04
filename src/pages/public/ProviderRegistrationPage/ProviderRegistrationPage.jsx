@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PersonalInfoPage from './PersonalInfopage'
 import PasswordPage from './PasswordPage'
 import AdditionalInfoPage from './AdditionalInfoPage'
+import PrivacyPolicyModal from '../../../components/ui/PrivacyPolicyModal'
 import { useAuth } from '../../../hooks/useAuth'
 import { ApiError, AuthService } from '../../../services/generated'
 
@@ -10,9 +11,9 @@ export default function ProviderRegistrationPage() {
     const navigate = useNavigate()
     const { setUser } = useAuth()
     const [page, setPage] = useState('personal')
+    const [showPolicyModal, setShowPolicyModal] = useState(true) // gate shown on mount
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [apiError, setApiError] = useState('')
-
     const [formData, setFormData] = useState({
         username: '',
         firstName: '',
@@ -34,11 +35,21 @@ export default function ProviderRegistrationPage() {
         }))
     }
 
+    const handlePolicyAccept = () => {
+        setFormData(prev => ({ ...prev, consent: true }))
+        setShowPolicyModal(false)
+    }
+
+    const handlePolicyClose = () => {
+        // Declined to read/accept — send them back rather than
+        // dropping them into a flow they can't complete
+        navigate('/login')
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setApiError('')
         setIsSubmitting(true)
-
         try {
             const response = await AuthService.registerProvider({
                 requestBody: {
@@ -53,11 +64,9 @@ export default function ProviderRegistrationPage() {
                     consent: formData.consent,
                 },
             })
-
             const loginResponse = await AuthService.login({
                 requestBody: { email: formData.email, password: formData.password },
             })
-
             setUser(loginResponse.user ?? response.user)
             navigate('/', { replace: true })
         } catch (error) {
@@ -71,22 +80,38 @@ export default function ProviderRegistrationPage() {
         }
     }
 
-    if (page === 'password') {
-        return (
-            <PasswordPage
-                formData={formData}
-                handleChange={handleChange}
-                onBack={() => setPage('additional')}
-                onNext={handleSubmit}
-                isSubmitting={isSubmitting}
-                apiError={apiError}
+    return (
+        <>
+            <PrivacyPolicyModal
+                open={showPolicyModal}
+                onAccept={handlePolicyAccept}
+                onClose={handlePolicyClose}
             />
-        )
-    }
-
-    if (page === 'additional') {
-        return <AdditionalInfoPage formData={formData} handleChange={handleChange} onBack={() => setPage('personal')} onNext={() => setPage('password')} />
-    }
-
-    return <PersonalInfoPage formData={formData} handleChange={handleChange} onNext={() => setPage('additional')} />
+            {page === 'password' && (
+                <PasswordPage
+                    formData={formData}
+                    handleChange={handleChange}
+                    onBack={() => setPage('additional')}
+                    onNext={handleSubmit}
+                    isSubmitting={isSubmitting}
+                    apiError={apiError}
+                />
+            )}
+            {page === 'additional' && (
+                <AdditionalInfoPage
+                    formData={formData}
+                    handleChange={handleChange}
+                    onBack={() => setPage('personal')}
+                    onNext={() => setPage('password')}
+                />
+            )}
+            {page === 'personal' && (
+                <PersonalInfoPage
+                    formData={formData}
+                    handleChange={handleChange}
+                    onNext={() => setPage('additional')}
+                />
+            )}
+        </>
+    )
 }

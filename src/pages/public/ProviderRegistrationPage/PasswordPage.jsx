@@ -146,7 +146,7 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext, i
                     )}
 
                     {/* Button Container */}
-                    <div className="flex gap-3 mt-auto">
+                    <div className="flex gap-3 mt-8">
                         <Button
                             variant="secondary"
                             className="flex-1"
