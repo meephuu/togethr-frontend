@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  title: Togethr API
+  description: REST API for authentication and user profile management.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: Registration and authentication
+  - name: Users
+    description: User profile management
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      summary: Register a customer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Customer account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/register/provider:
+    post:
+      tags: [Auth]
+      operationId: registerProvider
+      summary: Register a provider account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterProviderRequest"
+      responses:
+        "201":
+          description: Provider account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterProviderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Log in with an email and password
+      description: Sets an HttpOnly `token` cookie when authentication succeeds.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly JWT session cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Log out and clear the session cookie
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /users/me:
+    get:
+      tags: [Users]
+      operationId: getMyProfile
+      summary: Get the authenticated user's full profile
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags: [Users]
+      operationId: updateMyProfile
+      summary: Update the authenticated user's profile
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileRequest"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      operationId: getPublicProfile
+      summary: Get a user's public profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Public profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicProfileResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Authentication failed or is required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    Gender:
+      type: string
+      enum: [M, F, O]
+
+    BaseRegistrationFields:
+      type: object
+      required: [username, email, password, firstname, lastname, consent]
+      properties:
+        consent:
+          type: boolean
+          description: Must be true — confirms the user has read and agreed to the Privacy Policy.
+        username:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          minLength: 8
+        firstname:
+          type: string
+          maxLength: 80
+        lastname:
+          type: string
+          maxLength: 80
+        gender:
+          $ref: "#/components/schemas/Gender"
+        bdate:
+          type: string
+          format: date
+        bankAccount:
+          type: string
+          maxLength: 20
+        phoneNumber:
+          type: string
+          maxLength: 20
+        instagram:
+          type: string
+          maxLength: 40
+        line:
+          type: string
+          maxLength: 40
+        facebook:
+          type: string
+          maxLength: 40
+
+    RegisterRequest:
+      allOf:
+        - $ref: "#/components/schemas/BaseRegistrationFields"
+
+    RegisterProviderRequest:
+      allOf:
+        - $ref: "#/components/schemas/BaseRegistrationFields"
+        - type: object
+          required: [idCard]
+          properties:
+            idCard:
+              type: string
+              pattern: "^[0-9]{13}$"
+            bio:
+              type: string
+            languages:
+              type: string
+              maxLength: 200
+            emergencyContactName:
+              type: string
+              maxLength: 80
+            emergencyContactPhone:
+              type: string
+              maxLength: 20
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+
+    AuthUser:
+      type: object
+      required: [id, username, email, firstname, lastname]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        firstname:
+          type: string
+        lastname:
+          type: string
+
+    RegisteredUser:
+      allOf:
+        - $ref: "#/components/schemas/AuthUser"
+        - type: object
+          required: [createdAt]
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+
+    ProviderRegistrationDetails:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: PENDING
+        idCard:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        languages:
+          type: string
+          nullable: true
+
+    RegisteredProviderUser:
+      allOf:
+        - $ref: "#/components/schemas/RegisteredUser"
+        - type: object
+          required: [provider]
+          properties:
+            provider:
+              $ref: "#/components/schemas/ProviderRegistrationDetails"
+
+    RegisterResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/RegisteredUser"
+
+    RegisterProviderResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/RegisteredProviderUser"
+
+    LoginResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/AuthUser"
+
+    LogoutResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: logged out
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        firstname:
+          type: string
+          maxLength: 80
+        lastname:
+          type: string
+          maxLength: 80
+        gender:
+          $ref: "#/components/schemas/Gender"
+        bdate:
+          type: string
+          format: date
+        bankAccount:
+          type: string
+          maxLength: 20
+        phoneNumber:
+          type: string
+          maxLength: 20
+        instagram:
+          type: string
+          maxLength: 40
+        line:
+          type: string
+          maxLength: 40
+        facebook:
+          type: string
+          maxLength: 40
+        bio:
+          type: string
+        languages:
+          type: string
+          maxLength: 200
+
+    ProviderProfile:
+      type: object
+      properties:
+        bio:
+          type: string
+          nullable: true
+        languages:
+          type: string
+          nullable: true
+
+    UserProfile:
+      allOf:
+        - $ref: "#/components/schemas/AuthUser"
+        - type: object
+          properties:
+            gender:
+              allOf:
+                - $ref: "#/components/schemas/Gender"
+              nullable: true
+            bdate:
+              type: string
+              format: date-time
+              nullable: true
+            bankAccount:
+              type: string
+              nullable: true
+            phoneNumber:
+              type: string
+              nullable: true
+            instagram:
+              type: string
+              nullable: true
+            line:
+              type: string
+              nullable: true
+            facebook:
+              type: string
+              nullable: true
+            provider:
+              allOf:
+                - $ref: "#/components/schemas/ProviderProfile"
+              nullable: true
+
+    ProfileResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfile"
+
+    PublicProviderProfile:
+      allOf:
+        - $ref: "#/components/schemas/ProviderProfile"
+        - type: object
+          properties:
+            avgRating:
+              type: string
+              nullable: true
+              example: "4.75"
+
+    PublicUserProfile:
+      allOf:
+        - $ref: "#/components/schemas/AuthUser"
+        - type: object
+          properties:
+            gender:
+              allOf:
+                - $ref: "#/components/schemas/Gender"
+              nullable: true
+            instagram:
+              type: string
+              nullable: true
+            line:
+              type: string
+              nullable: true
+            facebook:
+              type: string
+              nullable: true
+            provider:
+              allOf:
+                - $ref: "#/components/schemas/PublicProviderProfile"
+              nullable: true
+
+    PublicProfileResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/PublicUserProfile"

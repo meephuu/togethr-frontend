@@ -33,27 +33,27 @@ export default function HomePage() {
             </section>
 
             {/* Features Section */}
-            <section className='px-4 py-20 bg-gradient-to-r from-blue-50 to-blue-200'>
+            <section className='px-4 py-20 bg-gradient-to-r from-blue-50 to-blue-100'>
                 <div className='max-w-5xl mx-auto'>
                     <h2 className='text-3xl font-bold text-center text-gray-900 mb-12'>Why Choose Us?</h2>
                     <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
                         
                         {/* Feature 1 */}
-                        <div className='p-6 border bg-white border-gray-200 rounded-lg hover:shadow-lg transition'>
+                        <div className='p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition'>
                             <div className='text-4xl mb-4'>🌍</div>
                             <h3 className='text-xl font-bold text-gray-900 mb-2'>Explore Anywhere</h3>
                             <p className='text-gray-600'>Discover hidden gems and local experiences with authentic guides</p>
                         </div>
 
                         {/* Feature 2 */}
-                        <div className='p-6 border bg-white border-gray-200 rounded-lg hover:shadow-lg transition'>
+                        <div className='p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition'>
                             <div className='text-4xl mb-4'>👥</div>
                             <h3 className='text-xl font-bold text-gray-900 mb-2'>Meet Locals</h3>
                             <p className='text-gray-600'>Connect with travelers and guides who share your interests</p>
                         </div>
 
                         {/* Feature 3 */}
-                        <div className='p-6 border bg-white border-gray-200 rounded-lg hover:shadow-lg transition'>
+                        <div className='p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition'>
                             <div className='text-4xl mb-4'>💯</div>
                             <h3 className='text-xl font-bold text-gray-900 mb-2'>Verified Profiles</h3>
                             <p className='text-gray-600'>Trusted community with verified travelers and professional guides</p>

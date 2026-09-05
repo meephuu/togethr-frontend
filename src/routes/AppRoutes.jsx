@@ -5,15 +5,19 @@ import LoginPage from "../pages/public/LoginPage";
 import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
 import HomePage from "../pages/public/HomePage";
 import SignUpPage from "../pages/public/SignUpPage";
+import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
+import PublicProfilePage from "../pages/public/PublicProfilePage";
+import ProfileEditPage from "../pages/private/ProfileEditPage";
+import CookieConsentBanner from "../components/CookieConsentBanner";
+import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
+import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 
 // ==========================================
 // Temp Pages Import
 // ==========================================
 
 // Public Pages
-const Home = () => (
-    <HomePage />
-);
+const Home = () => <HomePage />;
 
 // Customer Pages
 const CustomerBookings = () => (
@@ -41,13 +45,19 @@ export default function AppRoutes() {
                 <Route path="/" element={<Home />} />
                 <Route path="/sign-up" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/provider-registration" element={<ProviderRegistrationPage />} />
+                <Route
+                    path="/provider-registration"
+                    element={<ProviderRegistrationPage />}
+                />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/profile/edit" element={<ProfileEditPage />} />
+                <Route path="/profile/:id" element={<PublicProfilePage />} />
 
                 {/* customer */}
                 <Route element={<RoleRoute allowedRole="customer" />}>
                     <Route
-                        path="/customer/bookings"
-                        element={<CustomerBookings />}
+                        path="/customer/dashboard"
+                        element={<CustomerDashboardPage />}
                     />
                 </Route>
 
@@ -55,12 +65,13 @@ export default function AppRoutes() {
                 <Route element={<RoleRoute allowedRole="provider" />}>
                     <Route
                         path="/provider/dashboard"
-                        element={<ProviderDashboard />}
+                        element={<ProviderDashboardPage />}
                     />
                 </Route>
 
                 <Route path="*" element={<Home />} />
             </Routes>
+            <CookieConsentBanner />
         </BrowserRouter>
     );
 }

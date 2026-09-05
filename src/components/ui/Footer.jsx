@@ -1,4 +1,8 @@
+import { useNavigate } from 'react-router-dom'
+
 export default function Footer() {
+    const navigate = useNavigate()
+
     return (
         <footer className='bg-gray-900 text-white px-8 py-12'>
             <div className='max-w-5xl mx-auto'>
@@ -26,7 +30,7 @@ export default function Footer() {
                     <div>
                         <h4 className='font-bold mb-4'>Legal</h4>
                         <ul className='text-gray-400 space-y-2'>
-                            <li><button className='hover:text-white'>Privacy</button></li>
+                            <li><button onClick={() => navigate('/privacy-policy')} className='hover:text-white'>Privacy</button></li>
                             <li><button className='hover:text-white'>Terms</button></li>
                         </ul>
                     </div>

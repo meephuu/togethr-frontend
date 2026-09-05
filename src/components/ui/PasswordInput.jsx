@@ -20,30 +20,59 @@ function EyeOffIcon() {
     );
 }
 
-export default function PasswordInput({ id, name, value, onChange, placeholder, error }) {
+// Reusable password field with show/hide toggle.
+// `label` and `labelAction` (e.g. a "Forgot password?" link) are optional,
+// so this can be used with or without a heading row above the input.
+export default function PasswordInput({
+    label,
+    labelAction,
+    name,
+    value,
+    onChange,
+    placeholder,
+    error,
+    disabled = false,
+    autoComplete = "current-password",
+    className = "",
+}) {
     const [show, setShow] = useState(false);
 
     return (
-        <div className="relative">
-            <input
-                id={id}
-                name={name}
-                type={show ? "text" : "password"}
-                placeholder={placeholder}
-                value={value}
-                onChange={onChange}
-                className={`w-full px-4 py-2.5 pr-11 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                    error ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-primary"
-                }`}
-            />
-            <button
-                type="button"
-                onClick={() => setShow((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                tabIndex={-1}
-            >
-                {show ? <EyeOffIcon /> : <EyeIcon />}
-            </button>
+        <div className={className}>
+            {(label || labelAction) && (
+                <div className="flex items-center justify-between mb-2">
+                    {label && (
+                        <label htmlFor={name} className="text-sm font-medium text-text-main">
+                            {label}
+                        </label>
+                    )}
+                    {labelAction}
+                </div>
+            )}
+            <div className="relative">
+                <input
+                    id={name}
+                    name={name}
+                    type={show ? "text" : "password"}
+                    autoComplete={autoComplete}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    disabled={disabled}
+                    className={`w-full px-4 py-2.5 pr-11 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
+                        error ? "border-red-500 focus:ring-red-500" : "border-gray-200 focus:ring-primary"
+                    }`}
+                />
+                <button
+                    type="button"
+                    onClick={() => setShow((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                >
+                    {show ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+            </div>
+            {error && <p className="text-red-500 text-xs mt-1 leading-tight">{error}</p>}
         </div>
     );
 }

@@ -1,82 +1,43 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
+import { useAuth } from "../../hooks/useAuth";
+import { ApiError, AuthService } from "../../services/generated";
 import PasswordInput from "../../components/ui/PasswordInput";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const LoginPage = () => {
-    const location = useLocation();
-    const [activeTab, setActiveTab] = useState(location.state?.tab === "signup" ? "signup" : "login");
+    const navigate = useNavigate();
+    const { setUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [errors, setErrors] = useState({});
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const switchTab = (tab) => {
-        setActiveTab(tab);
-        setErrors({}); // don't carry stale errors between login/signup
-    };
-
-    const validate = () => {
-        const newErrors = {};
-
-        if (!email.trim()) {
-            newErrors.email = "Email is required";
-        } else if (!emailRegex.test(email)) {
-            newErrors.email = "Please enter a valid email address";
-        }
-
-        if (!password.trim()) {
-            newErrors.password = "Password is required";
-        } else if (password.length < 8) {
-            newErrors.password = "Password must be at least 8 characters";
-        }
-
-        if (activeTab === "signup") {
-            if (!confirmPassword.trim()) {
-                newErrors.confirmPassword = "Please re-enter your password";
-            } else if (password !== confirmPassword) {
-                newErrors.confirmPassword = "Passwords do not match";
-            }
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validate()) return;
+        setErrorMessage("");
+        setIsSubmitting(true);
 
-        if (activeTab === "login") {
-            // mockup เฉยๆ ยังไม่มี logic
-            console.log("login clicked (mockup only)", { email, password });
-        } else {
-            // mockup เฉยๆ ยังไม่มี logic
-            console.log("signup clicked (mockup only)", { email, password, confirmPassword });
+        try {
+            const response = await AuthService.login({
+                requestBody: { email, password },
+            });
+
+            setUser(response.user);
+            navigate("/", { replace: true });
+        } catch (error) {
+            if (error instanceof ApiError) {
+                setErrorMessage(
+                    error.body?.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+                );
+            } else {
+                setErrorMessage(
+                    "Could not connect to the server. Please try again.",
+                );
+            }
+        } finally {
+            setIsSubmitting(false);
         }
-    };
-
-    const clearFieldError = (field) => {
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: undefined }));
-        }
-    };
-
-    const handleEmailChange = (e) => {
-        setEmail(e.target.value);
-        clearFieldError("email");
-    };
-
-    const handlePasswordChange = (e) => {
-        setPassword(e.target.value);
-        clearFieldError("password");
-    };
-
-    const handleConfirmPasswordChange = (e) => {
-        setConfirmPassword(e.target.value);
-        clearFieldError("confirmPassword");
     };
 
     return (
@@ -87,12 +48,7 @@ const LoginPage = () => {
                     <div className="inline-flex bg-secondary rounded-xl p-1 gap-1">
                         <button
                             type="button"
-                            onClick={() => switchTab("login")}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                activeTab === "login"
-                                    ? "bg-background text-text-main shadow-sm"
-                                    : "text-text-muted hover:text-text-main"
-                            }`}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-background text-text-main shadow-sm"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -112,12 +68,8 @@ const LoginPage = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => switchTab("signup")}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                activeTab === "signup"
-                                    ? "bg-background text-text-main shadow-sm"
-                                    : "text-text-muted hover:text-text-main"
-                            }`}
+                            onClick={() => navigate("/sign-up")}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all text-text-muted hover:text-text-main"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -147,50 +99,44 @@ const LoginPage = () => {
                         </label>
                         <input
                             id="email"
+                            name="email"
                             type="email"
+                            autoComplete="email"
                             placeholder="Enter Your Email Address"
                             value={email}
-                            onChange={handleEmailChange}
-                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                                errors.email
-                                    ? "border-red-500 focus:ring-red-500"
-                                    : "border-gray-200 focus:ring-primary"
-                            }`}
+                            onChange={(e) => setEmail(e.target.value)}
+                            disabled={isSubmitting}
+                            required
+                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         {errors.email && (
                             <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                         )}
                     </div>
 
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-text-main"
+                    <PasswordInput
+                        label="Password"
+                        labelAction={
+                            <button
+                                type="button"
+                                className="text-sm text-text-muted hover:text-primary transition-colors"
                             >
-                                Password
-                            </label>
-                            {activeTab === "login" && (
-                                <button
-                                    type="button"
-                                    className="text-sm text-text-muted hover:text-primary transition-colors"
-                                >
-                                    Forgot Password?
-                                </button>
-                            )}
-                        </div>
-                        <PasswordInput
-                            id="password"
-                            name="password"
-                            placeholder="Enter Your Password"
-                            value={password}
-                            onChange={handlePasswordChange}
-                            error={errors.password}
-                        />
-                        {errors.password && (
-                            <p className="text-red-500 text-xs mt-1 leading-tight">{errors.password}</p>
-                        )}
-                    </div>
+                                Forgot Password?
+                            </button>
+                        }
+                        name="password"
+                        placeholder="Enter Your Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={isSubmitting}
+                        autoComplete="current-password"
+                    />
+
+                    {errorMessage && (
+                        <p className="text-sm text-red-600" role="alert">
+                            {errorMessage}
+                        </p>
+                    )}
 
                     {activeTab === "signup" && (
                         <div>
@@ -215,11 +161,12 @@ const LoginPage = () => {
                     )}
 
                     <Button
+                        type="submit"
                         variant="primary"
                         className="w-full mt-3"
-                        type="submit"
+                        disabled={isSubmitting}
                     >
-                        {activeTab === "login" ? "Log In" : "Sign Up"}
+                        {isSubmitting ? "Logging In..." : "Log In"}
                     </Button>
                 </form>
             </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../../../components/ui/Button";
 import PasswordInput from "../../../components/ui/PasswordInput";
 
-export default function PasswordPage({ formData, handleChange, onBack, onNext }) {
+export default function PasswordPage({ formData, handleChange, onBack, onNext, isSubmitting, apiError }) {
     const [errors, setErrors] = useState({});
 
     const validate = () => {
@@ -27,7 +27,7 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext })
     const handleNext = (e) => {
         e.preventDefault();
         if (validate()) {
-            onNext();
+            onNext(e);
         }
     };
 
@@ -40,8 +40,8 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext })
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-secondary px-4">
-            <div className="w-full max-w-sm min-h-[475px] bg-background rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
-                
+            <div className="w-full max-w-sm min-h-[420px] bg-background rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
+
                 {/* Header */}
                 <h1 className="text-xl text-text-main mb-8 text-center">
                     Enter Your Password
@@ -49,56 +49,48 @@ export default function PasswordPage({ formData, handleChange, onBack, onNext })
 
                 {/* Form */}
                 <form className="flex flex-col flex-1 space-y-5" onSubmit={handleNext} noValidate>
-                    {/* Password */}
-                    <div>
-                        <label className="block text-sm font-medium text-text-main mb-2">
-                            Password
-                        </label>
-                        <PasswordInput
-                            name="password"
-                            placeholder="Enter Your Password"
-                            value={formData.password}
-                            onChange={handleFieldChange}
-                            error={errors.password}
-                        />
-                        {errors.password && (
-                            <p className="text-red-500 text-xs mt-1 leading-tight">{errors.password}</p>
-                        )}
-                    </div>
+                    <PasswordInput
+                        label="Password"
+                        name="password"
+                        placeholder="Enter Your Password"
+                        value={formData.password}
+                        onChange={handleFieldChange}
+                        error={errors.password}
+                        autoComplete="new-password"
+                    />
 
-                    {/* Confirm Password */}
-                    <div>
-                        <label className="block text-sm font-medium text-text-main mb-2">
-                            Re-enter Password
-                        </label>
-                        <PasswordInput
-                            name="confirmPassword"
-                            placeholder="Re-enter Your Password"
-                            value={formData.confirmPassword}
-                            onChange={handleFieldChange}
-                            error={errors.confirmPassword}
-                        />
-                        {errors.confirmPassword && (
-                            <p className="text-red-500 text-xs mt-1 leading-tight">{errors.confirmPassword}</p>
-                        )}
-                    </div>
+                    <PasswordInput
+                        label="Re-enter Password"
+                        name="confirmPassword"
+                        placeholder="Re-enter Your Password"
+                        value={formData.confirmPassword}
+                        onChange={handleFieldChange}
+                        error={errors.confirmPassword}
+                        autoComplete="new-password"
+                    />
 
-                    {/* Button Container */}
-                    <div className="flex gap-3 mt-auto">
-                        <Button 
+                    {apiError && (
+                        <p className="text-red-500 text-xs" role="alert">{apiError}</p>
+                    )}
+
+                    {/* Button Container — pinned to the bottom of the card */}
+                    <div className="flex gap-3 mt-auto pt-8">
+                        <Button
                             variant="secondary"
                             className="flex-1"
                             type="button"
                             onClick={onBack}
+                            disabled={isSubmitting}
                         >
                             ← Back
                         </Button>
-                        <Button 
+                        <Button
                             variant="primary"
                             className="flex-1"
                             type="submit"
+                            disabled={isSubmitting}
                         >
-                            Confirm
+                            {isSubmitting ? "Submitting..." : "Confirm"}
                         </Button>
                     </div>
                 </form>

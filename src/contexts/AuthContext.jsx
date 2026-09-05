@@ -1,19 +1,32 @@
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
+import { AuthContext } from "./auth-context";
 
-const AuthContext = createContext(null);
+function getStoredUser() {
+    try {
+        return JSON.parse(localStorage.getItem("user"));
+    } catch {
+        localStorage.removeItem("user");
+        return null;
+    }
+}
 
 export function AuthProvider({ children }) {
-    // TODO: ยังเป็น mockup อยู่ ยังไม่เช็ค token/login จริง
-    const [user, setUser] = useState(null);
+    const [user, setUserState] = useState(getStoredUser);
     const isAuthenticated = !!user;
+
+    const setUser = (nextUser) => {
+        setUserState(nextUser);
+
+        if (nextUser) {
+            localStorage.setItem("user", JSON.stringify(nextUser));
+        } else {
+            localStorage.removeItem("user");
+        }
+    };
 
     const value = { user, setUser, isAuthenticated };
 
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
-}
-
-export function useAuth() {
-    return useContext(AuthContext);
 }
