@@ -109,9 +109,6 @@ const LoginPage = () => {
                             required
                             className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
-                        {errors.email && (
-                            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                        )}
                     </div>
 
                     <PasswordInput
@@ -136,28 +133,6 @@ const LoginPage = () => {
                         <p className="text-sm text-red-600" role="alert">
                             {errorMessage}
                         </p>
-                    )}
-
-                    {activeTab === "signup" && (
-                        <div>
-                            <label
-                                htmlFor="confirmPassword"
-                                className="block text-sm font-medium text-text-main mb-2"
-                            >
-                                Re-enter Password
-                            </label>
-                            <PasswordInput
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                placeholder="Re-enter Your Password"
-                                value={confirmPassword}
-                                onChange={handleConfirmPasswordChange}
-                                error={errors.confirmPassword}
-                            />
-                            {errors.confirmPassword && (
-                                <p className="text-red-500 text-xs mt-1 leading-tight">{errors.confirmPassword}</p>
-                            )}
-                        </div>
                     )}
 
                     <Button
