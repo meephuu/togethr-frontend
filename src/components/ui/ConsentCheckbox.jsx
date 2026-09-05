@@ -1,6 +1,9 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import PrivacyPolicyModal from "../PrivacyPolicyModal";
 
 export default function ConsentCheckbox({ checked, onChange, error }) {
+    const [isPolicyOpen, setIsPolicyOpen] = useState(false);
+
     return (
         <div>
             <label className="flex items-start gap-2 text-sm text-text-muted">
@@ -13,17 +16,18 @@ export default function ConsentCheckbox({ checked, onChange, error }) {
                 />
                 <span>
                     I have read and agree to the{" "}
-                    <Link
-                        to="/privacy-policy"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <button
+                        type="button"
+                        onClick={() => setIsPolicyOpen(true)}
                         className="text-primary underline hover:text-primary-hover"
                     >
                         Privacy Policy
-                    </Link>
+                    </button>
                 </span>
             </label>
             {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+
+            <PrivacyPolicyModal open={isPolicyOpen} onClose={() => setIsPolicyOpen(false)} />
         </div>
     );
 }

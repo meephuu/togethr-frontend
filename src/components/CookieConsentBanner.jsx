@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import PrivacyPolicyModal from "./PrivacyPolicyModal";
 
 const STORAGE_KEY = "cookieConsent";
 const CONSENT_DURATION_MS = 180 * 24 * 60 * 60 * 1000; // 180 days
@@ -20,6 +20,7 @@ function readStoredChoice() {
 
 export default function CookieConsentBanner() {
     const [visible, setVisible] = useState(() => !readStoredChoice());
+    const [isPolicyOpen, setIsPolicyOpen] = useState(false);
 
     const storeChoice = (accepted) => {
         try {
@@ -37,12 +38,17 @@ export default function CookieConsentBanner() {
 
     return (
         <div className="fixed bottom-0 inset-x-0 z-50 bg-gray-900 text-white px-4 py-4">
+            <PrivacyPolicyModal open={isPolicyOpen} onClose={() => setIsPolicyOpen(false)} />
             <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-4">
                 <p className="text-sm text-gray-200 flex-1">
                     We use cookies to keep you signed in and improve your experience. See our{" "}
-                    <Link to="/privacy-policy" className="underline hover:text-white">
+                    <button
+                        type="button"
+                        onClick={() => setIsPolicyOpen(true)}
+                        className="underline hover:text-white"
+                    >
                         Privacy Policy
-                    </Link>{" "}
+                    </button>{" "}
                     for details.
                 </p>
                 <div className="flex gap-3 shrink-0">
