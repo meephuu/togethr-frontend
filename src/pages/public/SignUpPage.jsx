@@ -5,6 +5,7 @@ import ConsentCheckbox from "../../components/ui/ConsentCheckbox";
 import PrivacyPolicyModal from "../../components/ui/PrivacyPolicyModal";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, AuthService } from "../../services/generated";
+import PasswordInput from "../../components/ui/PasswordInput";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -280,55 +281,27 @@ export default function SignUpPage() {
                         )}
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-text-main mb-2">
-                            Password
-                        </label>
-                        <input
-                            name="password"
-                            type="password"
-                            autoComplete="new-password"
-                            placeholder="Enter Your Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            disabled={isSubmitting}
-                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                                errors.password
-                                    ? "border-red-500 focus:ring-red-500"
-                                    : "border-gray-200 focus:ring-primary"
-                            }`}
-                        />
-                        {errors.password && (
-                            <p className="text-red-500 text-xs mt-1">
-                                {errors.password}
-                            </p>
-                        )}
-                    </div>
+<PasswordInput
+    label="Password"
+    name="password"
+    placeholder="Enter Your Password"
+    value={formData.password}
+    onChange={handleChange}
+    error={errors.password}
+    disabled={isSubmitting}
+    autoComplete="new-password"
+/>
 
-                    <div>
-                        <label className="block text-sm font-medium text-text-main mb-2">
-                            Re-enter Password
-                        </label>
-                        <input
-                            name="confirmPassword"
-                            type="password"
-                            autoComplete="new-password"
-                            placeholder="Re-enter Your Password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            disabled={isSubmitting}
-                            className={`w-full px-4 py-2.5 rounded-lg border text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                                errors.confirmPassword
-                                    ? "border-red-500 focus:ring-red-500"
-                                    : "border-gray-200 focus:ring-primary"
-                            }`}
-                        />
-                        {errors.confirmPassword && (
-                            <p className="text-red-500 text-xs mt-1">
-                                {errors.confirmPassword}
-                            </p>
-                        )}
-                    </div>
+<PasswordInput
+    label="Re-enter Password"
+    name="confirmPassword"
+    placeholder="Re-enter Your Password"
+    value={formData.confirmPassword}
+    onChange={handleChange}
+    error={errors.confirmPassword}
+    disabled={isSubmitting}
+    autoComplete="new-password"
+/>
 
                     {apiError && (
                         <p className="text-sm text-red-600" role="alert">

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, AuthService } from "../../services/generated";
+import PasswordInput from "../../components/ui/PasswordInput";
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -26,9 +27,13 @@ const LoginPage = () => {
             navigate("/", { replace: true });
         } catch (error) {
             if (error instanceof ApiError) {
-                setErrorMessage(error.body?.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+                setErrorMessage(
+                    error.body?.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+                );
             } else {
-                setErrorMessage("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+                setErrorMessage(
+                    "Could not connect to the server. Please try again.",
+                );
             }
         } finally {
             setIsSubmitting(false);
@@ -106,34 +111,23 @@ const LoginPage = () => {
                         />
                     </div>
 
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-text-main"
-                            >
-                                Password
-                            </label>
+                    <PasswordInput
+                        label="Password"
+                        labelAction={
                             <button
                                 type="button"
                                 className="text-sm text-text-muted hover:text-primary transition-colors"
                             >
                                 Forgot Password?
                             </button>
-                        </div>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            autoComplete="current-password"
-                            placeholder="Enter Your Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            disabled={isSubmitting}
-                            required
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        />
-                    </div>
+                        }
+                        name="password"
+                        placeholder="Enter Your Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={isSubmitting}
+                        autoComplete="current-password"
+                    />
 
                     {errorMessage && (
                         <p className="text-sm text-red-600" role="alert">

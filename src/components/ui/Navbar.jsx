@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "./Button";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthService } from "../../services/generated";
-import logo from "../../assets/temp-logo.png";
+import logo from "../../assets/temp-logo-black.png";
 
 const Navbar = (
     {
