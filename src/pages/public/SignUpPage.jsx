@@ -111,7 +111,7 @@ export default function SignUpPage() {
             });
 
             setUser(loginResponse.user ?? response.user);
-            navigate("/", { replace: true });
+            navigate("/customer/dashboard", { replace: true });
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(

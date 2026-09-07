@@ -241,6 +241,11 @@ components:
       type: string
       enum: [M, F, O]
 
+    UserRole:
+      type: string
+      enum: [CUSTOMER, PROVIDER]
+      description: Which dashboard the account belongs to. PROVIDER for accounts with a provider profile, regardless of approval status.
+
     BaseRegistrationFields:
       type: object
       required: [username, email, password, firstname, lastname, consent]
@@ -391,12 +396,21 @@ components:
         user:
           $ref: "#/components/schemas/RegisteredProviderUser"
 
+    AuthenticatedUser:
+      allOf:
+        - $ref: "#/components/schemas/AuthUser"
+        - type: object
+          required: [role]
+          properties:
+            role:
+              $ref: "#/components/schemas/UserRole"
+
     LoginResponse:
       type: object
       required: [user]
       properties:
         user:
-          $ref: "#/components/schemas/AuthUser"
+          $ref: "#/components/schemas/AuthenticatedUser"
 
     LogoutResponse:
       type: object

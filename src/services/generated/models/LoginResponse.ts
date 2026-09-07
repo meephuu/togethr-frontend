@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { AuthUser } from './AuthUser';
+import type { AuthenticatedUser } from './AuthenticatedUser';
 export type LoginResponse = {
-    user: AuthUser;
+    user: AuthenticatedUser;
 };
 

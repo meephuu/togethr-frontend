@@ -68,7 +68,7 @@ export default function ProviderRegistrationPage() {
                 requestBody: { email: formData.email, password: formData.password },
             })
             setUser(loginResponse.user ?? response.user)
-            navigate('/', { replace: true })
+            navigate('/provider/dashboard', { replace: true })
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(error.body?.error || 'Could not create your account. Please try again.')
