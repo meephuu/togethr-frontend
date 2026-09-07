@@ -38,7 +38,7 @@ export default function PrivacyPolicyModal({ open, onAccept, onClose }) {
                 <div
                     ref={scrollRef}
                     onScroll={handleScroll}
-                    className="overflow-y-auto px-6 py-4 text-sm"
+                    className="overflow-y-auto thin-scrollbar px-6 py-4 text-sm"
                 >
                     <PrivacyPolicyContent />
                 </div>
