@@ -139,7 +139,7 @@ export default function PersonalInfoPage({ formData, handleChange, onBack, onNex
                     </div>
 
                     {/* Next Button */}
-                    <div className="flex gap-3 mt-auto">
+                    <div className="flex gap-3 mt-8">
                         <Button 
                             variant="primary" 
                             className="w-full"

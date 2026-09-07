@@ -113,7 +113,7 @@ export default function AdditionalInfoPage({ formData, handleChange, onBack, onN
                     </div>
 
                     {/* Button Container */}
-                    <div className="flex gap-3 mt-auto">
+                    <div className="flex gap-3 mt-8">
                         <Button 
                             variant="secondary"
                             className="flex-1"
