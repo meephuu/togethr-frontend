@@ -185,11 +185,6 @@ export default function PrivacyPolicyContent() {
                     in-app notification.
                 </p>
             </Section>
-
-            <p className="text-xs text-gray-400 italic pt-4 border-t border-gray-100">
-                This document was prepared for Sprint 1 (US2-1). Please have it reviewed by legal counsel or your course
-                advisor before actual publication.
-            </p>
         </div>
     );
 }

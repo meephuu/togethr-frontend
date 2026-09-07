@@ -34,11 +34,12 @@ export default function PrivacyPolicyModal({ open, onAccept, onClose }) {
             {/* overflow-hidden clips the scroll container's scrollbar to the
                 rounded corners — without it the bar squares off the top right */}
             <div className="w-full max-w-lg max-h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
-                {/* Scrollable content */}
+                {/* Scrollable content. mr-2 insets the scrollbar from the modal
+                    edge; pr-4 keeps the text's right margin unchanged by it. */}
                 <div
                     ref={scrollRef}
                     onScroll={handleScroll}
-                    className="overflow-y-auto thin-scrollbar px-6 py-4 text-sm"
+                    className="overflow-y-auto thin-scrollbar pl-6 pr-4 py-4 mr-2 text-sm"
                 >
                     <PrivacyPolicyContent />
                 </div>
