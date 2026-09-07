@@ -31,7 +31,9 @@ export default function PrivacyPolicyModal({ open, onAccept, onClose }) {
 
     return (
         <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 px-4">
-            <div className="w-full max-w-lg max-h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col">
+            {/* overflow-hidden clips the scroll container's scrollbar to the
+                rounded corners — without it the bar squares off the top right */}
+            <div className="w-full max-w-lg max-h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
                 {/* Scrollable content */}
                 <div
                     ref={scrollRef}
