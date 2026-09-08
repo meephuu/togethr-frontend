@@ -19,20 +19,6 @@ import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 // Public Pages
 const Home = () => <HomePage />;
 
-// Customer Pages
-const CustomerBookings = () => (
-    <div className="p-10 text-2xl font-bold text-green-500">
-        📅 My Bookings (Customer)
-    </div>
-);
-
-// Provider Pages
-const ProviderDashboard = () => (
-    <div className="p-10 text-2xl font-bold text-purple-500">
-        📊 Dashboard (Provider)
-    </div>
-);
-
 // ==========================================
 // Main Router
 // ==========================================
@@ -54,7 +40,7 @@ export default function AppRoutes() {
                 <Route path="/profile/:id" element={<PublicProfilePage />} />
 
                 {/* customer */}
-                <Route element={<RoleRoute allowedRole="customer" />}>
+                <Route element={<RoleRoute allowedRole="CUSTOMER" />}>
                     <Route
                         path="/customer/dashboard"
                         element={<CustomerDashboardPage />}
@@ -62,7 +48,7 @@ export default function AppRoutes() {
                 </Route>
 
                 {/* provider */}
-                <Route element={<RoleRoute allowedRole="provider" />}>
+                <Route element={<RoleRoute allowedRole="PROVIDER" />}>
                     <Route
                         path="/provider/dashboard"
                         element={<ProviderDashboardPage />}

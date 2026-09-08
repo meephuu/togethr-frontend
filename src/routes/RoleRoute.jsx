@@ -1,8 +1,24 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
 
-// TODO: ยังไม่มีระบบ auth จริง ตอนนี้ให้ผ่านทุก role ไปก่อน
-// เมื่อทำ AuthContext เสร็จแล้ว ค่อยกลับมาเช็ค isAuthenticated และ user.role ตรงนี้
+const DASHBOARD_BY_ROLE = {
+    CUSTOMER: "/customer/dashboard",
+    PROVIDER: "/provider/dashboard",
+};
+
 export default function RoleRoute({ allowedRole }) {
-    console.log(`RoleRoute mockup: bypassing check for role "${allowedRole}"`);
+    const { user, isAuthenticated } = useAuth();
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (user.role !== allowedRole) {
+        // Send them to their own dashboard instead of a dead end. Sessions
+        // stored before roles existed have no role — fall back to home so
+        // this can't bounce between two dashboards.
+        return <Navigate to={DASHBOARD_BY_ROLE[user.role] ?? "/"} replace />;
+    }
+
     return <Outlet />;
 }

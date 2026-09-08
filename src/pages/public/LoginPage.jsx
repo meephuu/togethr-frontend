@@ -24,7 +24,12 @@ const LoginPage = () => {
             });
 
             setUser(response.user);
-            navigate("/", { replace: true });
+            navigate(
+                response.user.role === "PROVIDER"
+                    ? "/provider/dashboard"
+                    : "/customer/dashboard",
+                { replace: true },
+            );
         } catch (error) {
             if (error instanceof ApiError) {
                 setErrorMessage(

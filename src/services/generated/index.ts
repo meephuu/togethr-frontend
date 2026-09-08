@@ -7,6 +7,7 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { AuthenticatedUser } from './models/AuthenticatedUser';
 export type { AuthUser } from './models/AuthUser';
 export type { BaseRegistrationFields } from './models/BaseRegistrationFields';
 export type { ErrorResponse } from './models/ErrorResponse';
@@ -28,6 +29,7 @@ export type { RegisterRequest } from './models/RegisterRequest';
 export type { RegisterResponse } from './models/RegisterResponse';
 export type { UpdateProfileRequest } from './models/UpdateProfileRequest';
 export type { UserProfile } from './models/UserProfile';
+export { UserRole } from './models/UserRole';
 
 export { AuthService } from './services/AuthService';
 export { UsersService } from './services/UsersService';

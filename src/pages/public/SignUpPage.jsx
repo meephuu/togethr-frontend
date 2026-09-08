@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
-import ConsentCheckbox from "../../components/ui/ConsentCheckbox";
 import PrivacyPolicyModal from "../../components/ui/PrivacyPolicyModal";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, AuthService } from "../../services/generated";
@@ -112,7 +111,7 @@ export default function SignUpPage() {
             });
 
             setUser(loginResponse.user ?? response.user);
-            navigate("/", { replace: true });
+            navigate("/customer/dashboard", { replace: true });
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(
