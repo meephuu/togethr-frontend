@@ -1,10 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-
-const DASHBOARD_BY_ROLE = {
-    CUSTOMER: "/customer/dashboard",
-    PROVIDER: "/provider/dashboard",
-};
+import { dashboardFor, hasRole } from "../lib/roles";
 
 export default function RoleRoute({ allowedRole }) {
     const { user, isAuthenticated } = useAuth();
@@ -13,11 +9,9 @@ export default function RoleRoute({ allowedRole }) {
         return <Navigate to="/login" replace />;
     }
 
-    if (user.role !== allowedRole) {
-        // Send them to their own dashboard instead of a dead end. Sessions
-        // stored before roles existed have no role — fall back to home so
-        // this can't bounce between two dashboards.
-        return <Navigate to={DASHBOARD_BY_ROLE[user.role] ?? "/"} replace />;
+    if (!hasRole(user, allowedRole)) {
+        // Send them somewhere they can actually use rather than a dead end
+        return <Navigate to={dashboardFor(user)} replace />;
     }
 
     return <Outlet />;

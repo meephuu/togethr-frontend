@@ -4,11 +4,12 @@ import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, AuthService } from "../../services/generated";
 import PasswordInput from "../../components/ui/PasswordInput";
+import { dashboardFor } from "../../lib/roles";
 
 const LoginPage = () => {
     const navigate = useNavigate();
     const { setUser } = useAuth();
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,21 +20,23 @@ const LoginPage = () => {
         setIsSubmitting(true);
 
         try {
+            const trimmed = identifier.trim();
+            // Usernames can't contain "@", so this tells the two apart
+            const credentials = trimmed.includes("@")
+                ? { email: trimmed }
+                : { username: trimmed };
+
             const response = await AuthService.login({
-                requestBody: { email, password },
+                requestBody: { ...credentials, password },
             });
 
             setUser(response.user);
-            navigate(
-                response.user.role === "PROVIDER"
-                    ? "/provider/dashboard"
-                    : "/customer/dashboard",
-                { replace: true },
-            );
+            navigate(dashboardFor(response.user), { replace: true });
         } catch (error) {
             if (error instanceof ApiError) {
                 setErrorMessage(
-                    error.body?.error || "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+                    error.body?.error ||
+                        "Your username, email or password is incorrect.",
                 );
             } else {
                 setErrorMessage(
@@ -97,19 +100,19 @@ const LoginPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                     <div>
                         <label
-                            htmlFor="email"
+                            htmlFor="identifier"
                             className="block text-sm font-medium text-text-main mb-2"
                         >
-                            Email Address
+                            Username or Email
                         </label>
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            autoComplete="email"
-                            placeholder="Enter Your Email Address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            id="identifier"
+                            name="identifier"
+                            type="text"
+                            autoComplete="username"
+                            placeholder="Enter Your Username or Email"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             disabled={isSubmitting}
                             required
                             className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
