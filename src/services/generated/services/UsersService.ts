@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AddProviderProfileRequest } from '../models/AddProviderProfileRequest';
+import type { LoginResponse } from '../models/LoginResponse';
 import type { ProfileResponse } from '../models/ProfileResponse';
 import type { PublicProfileResponse } from '../models/PublicProfileResponse';
 import type { UpdateProfileRequest } from '../models/UpdateProfileRequest';
@@ -38,6 +40,31 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/users/me',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid request`,
+                401: `Authentication failed or is required`,
+                404: `Resource not found`,
+                409: `Resource already exists`,
+                500: `Unexpected server error`,
+            },
+        });
+    }
+    /**
+     * Add a provider profile to the signed-in account
+     * Lets an existing account also become a provider, instead of registering a second account.
+     * @returns LoginResponse Provider profile added
+     * @throws ApiError
+     */
+    public static addProviderProfile({
+        requestBody,
+    }: {
+        requestBody: AddProviderProfileRequest,
+    }): CancelablePromise<LoginResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/users/me/provider',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
