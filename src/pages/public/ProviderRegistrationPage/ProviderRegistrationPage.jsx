@@ -63,7 +63,7 @@ export default function ProviderRegistrationPage() {
                 },
             })
             setUser(response.user)
-            navigate('/provider/dashboard', { replace: true })
+            navigate(dashboardFor(response.user), { replace: true })
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(error.body?.error || 'Could not add a provider profile. Please try again.')
@@ -96,8 +96,9 @@ export default function ProviderRegistrationPage() {
             const loginResponse = await AuthService.login({
                 requestBody: { email: formData.email, password: formData.password },
             })
-            setUser(loginResponse.user ?? response.user)
-            navigate('/provider/dashboard', { replace: true })
+            const signedInUser = loginResponse.user ?? response.user
+            setUser(signedInUser)
+            navigate(dashboardFor(signedInUser), { replace: true })
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(error.body?.error || 'Could not create your account. Please try again.')

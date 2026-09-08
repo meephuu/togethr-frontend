@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "./Button";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthService } from "../../services/generated";
+import { dashboardFor } from "../../lib/roles";
 import logo from "../../assets/temp-logo-black.png";
 
 const Navbar = (
@@ -26,7 +27,9 @@ const Navbar = (
         <nav className="bg-white shadow-sm sticky top-0 z-50">
             <div className="max-w-7xl mx-auto flex justify-between items-center px-8 py-4">
                 <div
-                    onClick={() => navigate("/")}
+                    onClick={() =>
+                        navigate(isAuthenticated ? dashboardFor(user) : "/")
+                    }
                     className="flex items-center gap-3 cursor-pointer"
                 >
                     <img
