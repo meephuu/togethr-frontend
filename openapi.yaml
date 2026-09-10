@@ -162,6 +162,39 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /users/me/provider:
+    post:
+      tags: [Users]
+      operationId: addProviderProfile
+      summary: Add a provider profile to the signed-in account
+      description: Lets an existing account also become a provider, instead of registering a second account.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddProviderProfileRequest"
+      responses:
+        "201":
+          description: Provider profile added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /users/{id}:
     get:
       tags: [Users]
@@ -244,7 +277,7 @@ components:
     UserRole:
       type: string
       enum: [CUSTOMER, PROVIDER]
-      description: Which dashboard the account belongs to. PROVIDER for accounts with a provider profile, regardless of approval status.
+      description: A profile the account holds. PROVIDER applies regardless of approval status.
 
     BaseRegistrationFields:
       type: object
@@ -318,12 +351,19 @@ components:
 
     LoginRequest:
       type: object
-      required: [email, password]
+      description: Supply either an email or a username, along with the password.
+      required: [password]
+      anyOf:
+        - required: [email]
+        - required: [username]
       properties:
         email:
           type: string
           format: email
           maxLength: 254
+        username:
+          type: string
+          maxLength: 50
         password:
           type: string
           format: password
@@ -400,10 +440,13 @@ components:
       allOf:
         - $ref: "#/components/schemas/AuthUser"
         - type: object
-          required: [role]
+          required: [roles]
           properties:
-            role:
-              $ref: "#/components/schemas/UserRole"
+            roles:
+              type: array
+              description: Every profile this account holds. An account can be both a customer and a provider.
+              items:
+                $ref: "#/components/schemas/UserRole"
 
     LoginResponse:
       type: object
@@ -419,6 +462,25 @@ components:
         message:
           type: string
           example: logged out
+
+    AddProviderProfileRequest:
+      type: object
+      required: [idCard]
+      properties:
+        idCard:
+          type: string
+          pattern: "^[0-9]{13}$"
+        bio:
+          type: string
+        languages:
+          type: string
+          maxLength: 200
+        emergencyContactName:
+          type: string
+          maxLength: 80
+        emergencyContactPhone:
+          type: string
+          maxLength: 20
 
     UpdateProfileRequest:
       type: object

@@ -1,7 +1,15 @@
 import { useState } from "react";
 import Button from "../../../components/ui/Button";
 
-export default function AdditionalInfoPage({ formData, handleChange, onBack, onNext }) {
+export default function AdditionalInfoPage({
+    formData,
+    handleChange,
+    onBack,
+    onNext,
+    isSubmitting,
+    apiError,
+    submitLabel = "Next ➝",
+}) {
     const [errors, setErrors] = useState({});
 
     const validate = () => {
@@ -112,22 +120,28 @@ export default function AdditionalInfoPage({ formData, handleChange, onBack, onN
                         )}
                     </div>
 
+                    {apiError && (
+                        <p className="text-red-500 text-xs" role="alert">{apiError}</p>
+                    )}
+
                     {/* Button Container */}
                     <div className="flex gap-3 mt-8">
-                        <Button 
+                        <Button
                             variant="secondary"
                             className="flex-1"
                             type="button"
                             onClick={onBack}
+                            disabled={isSubmitting}
                         >
                             ← Back
                         </Button>
-                        <Button 
+                        <Button
                             variant="primary"
                             className="flex-1"
                             type="submit"
+                            disabled={isSubmitting}
                         >
-                            Next ➝
+                            {isSubmitting ? "Submitting..." : submitLabel}
                         </Button>
                     </div>
                 </form>

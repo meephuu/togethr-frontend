@@ -5,6 +5,9 @@
 import type { AuthUser } from './AuthUser';
 import type { UserRole } from './UserRole';
 export type AuthenticatedUser = (AuthUser & {
-    role: UserRole;
+    /**
+     * Every profile this account holds. An account can be both a customer and a provider.
+     */
+    roles: Array<UserRole>;
 });
 

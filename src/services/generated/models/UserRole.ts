@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Which dashboard the account belongs to. PROVIDER for accounts with a provider profile, regardless of approval status.
+ * A profile the account holds. PROVIDER applies regardless of approval status.
  */
 export enum UserRole {
     CUSTOMER = 'CUSTOMER',

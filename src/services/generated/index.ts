@@ -7,6 +7,7 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { AddProviderProfileRequest } from './models/AddProviderProfileRequest';
 export type { AuthenticatedUser } from './models/AuthenticatedUser';
 export type { AuthUser } from './models/AuthUser';
 export type { BaseRegistrationFields } from './models/BaseRegistrationFields';

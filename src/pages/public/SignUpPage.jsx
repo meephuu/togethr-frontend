@@ -4,6 +4,7 @@ import Button from "../../components/ui/Button";
 import PrivacyPolicyModal from "../../components/ui/PrivacyPolicyModal";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, AuthService } from "../../services/generated";
+import { dashboardFor } from "../../lib/roles";
 import PasswordInput from "../../components/ui/PasswordInput";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -110,8 +111,9 @@ export default function SignUpPage() {
                 },
             });
 
-            setUser(loginResponse.user ?? response.user);
-            navigate("/customer/dashboard", { replace: true });
+            const signedInUser = loginResponse.user ?? response.user;
+            setUser(signedInUser);
+            navigate(dashboardFor(signedInUser), { replace: true });
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(

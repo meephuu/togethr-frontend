@@ -2,8 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+/**
+ * Supply either an email or a username, along with the password.
+ */
 export type LoginRequest = {
-    email: string;
+    email?: string;
+    username?: string;
     password: string;
 };
 
