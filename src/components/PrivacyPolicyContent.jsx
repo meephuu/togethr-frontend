@@ -17,7 +17,7 @@ export default function PrivacyPolicyContent() {
             <h1 className="text-2xl font-bold text-text-main mb-2">Privacy Policy</h1>
             <p className="text-lg font-semibold text-text-main mb-1">Togethr</p>
             <p className="text-sm text-text-muted mb-8">
-                Version 1.0 | Effective from [insert publish date]
+                Version 1.0 | Effective from 14 September 2026
             </p>
 
             <Section number={1} title="Introduction">
@@ -37,7 +37,7 @@ export default function PrivacyPolicyContent() {
             <Section number={2} title="Information We Collect">
                 <h3 className="font-semibold text-text-main">2.1 Information all users must provide</h3>
                 <ul className="list-disc list-inside space-y-1">
-                    <li>Full name, username, password (stored hashed)</li>
+                    <li>Full name, username, email address, password (stored hashed)</li>
                     <li>Gender, date of birth</li>
                     <li>Phone number</li>
                     <li>Social contact channels (Instagram, Line, Facebook) — optional</li>
@@ -102,10 +102,13 @@ export default function PrivacyPolicyContent() {
                         required
                     </li>
                     <li>
-                        <span className="font-semibold text-text-main">Public profile</span>: some Provider information
-                        (name, bio, languages, review score) is shown publicly,{" "}
-                        <span className="font-semibold text-text-main">excluding</span> national ID number, bank
-                        account, and phone number, which remain hidden from public access
+                        <span className="font-semibold text-text-main">Public profile</span>: part of every account&rsquo;s
+                        profile is visible to anyone, without signing in — name, username, email address, gender, and
+                        any social contact channels you add, plus bio, languages spoken, and review score for
+                        Providers. It{" "}
+                        <span className="font-semibold text-text-main">excludes</span> national ID number, bank
+                        account, phone number, date of birth, and emergency contact information, which remain hidden
+                        from public access
                     </li>
                 </ul>
             </Section>
