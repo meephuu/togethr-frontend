@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../../components/ui/Navbar";
+import CustomerTabs from "../../components/customer/CustomerTabs";
 import FilterPanel from "../../components/search/FilterPanel";
 import ActiveFilterChips from "../../components/search/ActiveFilterChips";
 import { useSearchFilters } from "../../hooks/useSearchFilters";
@@ -89,7 +90,9 @@ export default function DevFiltersPage() {
 
     return (
         <div className="flex min-h-screen flex-col bg-gray-50">
-            <Navbar />
+            <Navbar>
+                <CustomerTabs />
+            </Navbar>
             <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-16 pt-8 sm:px-8">
                 <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                     Temporary dev page for the filter panel (US5-2) with mock results. The real search page is Mee's
