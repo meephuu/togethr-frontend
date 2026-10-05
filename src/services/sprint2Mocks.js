@@ -31,6 +31,63 @@ const CATEGORIES = [
     { id: "cat-nature-hiking", name: "Nature & hiking" },
 ];
 
+// The provider's services, as in the My services mockup. Services published
+// through the mock are added to the top until the page reloads.
+const myServices = [
+    {
+        id: "svc-old-town",
+        title: "Old Town street food walk",
+        location: "Bangkok – Yaowarat & Old Town",
+        rate: 450,
+        rateUnit: "hour",
+        coverPhotoUrl: null,
+        status: "PUBLISHED",
+        bookingsThisMonth: 0,
+    },
+    {
+        id: "svc-temple-photo",
+        title: "Temple morning photo walk",
+        location: "Bangkok – Rattanakosin",
+        rate: 600,
+        rateUnit: "hour",
+        coverPhotoUrl: null,
+        status: "PUBLISHED",
+        bookingsThisMonth: 4,
+    },
+    {
+        id: "svc-chatuchak",
+        title: "Chatuchak weekend market day",
+        location: "Bangkok – Chatuchak",
+        rate: 2200,
+        rateUnit: "day",
+        coverPhotoUrl: null,
+        status: "PUBLISHED",
+        bookingsThisMonth: 3,
+    },
+    {
+        id: "svc-ayutthaya",
+        title: "Ayutthaya temples day trip",
+        location: "Ayutthaya",
+        rate: 2800,
+        rateUnit: "day",
+        coverPhotoUrl: null,
+        status: "UNPUBLISHED",
+        bookingsThisMonth: 0,
+    },
+];
+
+export async function getMyServices() {
+    await wait();
+    switch (getMockScenario("myServices")) {
+        case "empty":
+            return [];
+        case "network":
+            throw networkError();
+        default:
+            return myServices.map((service) => ({ ...service }));
+    }
+}
+
 export async function getCategories() {
     await wait();
     if (getMockScenario("providerStatus") === "network") throw networkError();
@@ -63,22 +120,23 @@ export async function createService(values) {
             });
         case "network":
             throw networkError();
-        default:
-            return {
-                service: {
-                    id: `svc-${Date.now()}`,
-                    title: values.title,
-                    description: values.description,
-                    location: values.location,
-                    rate: Number(values.rate),
-                    rateUnit: values.rateUnit,
-                    startTime: values.startTime,
-                    endTime: values.endTime,
-                    categoryIds: values.categoryIds,
-                    coverPhotoUrl: URL.createObjectURL(values.coverPhoto),
-                    status: "PUBLISHED",
-                    bookingsThisMonth: 0,
-                },
+        default: {
+            const service = {
+                id: `svc-${Date.now()}`,
+                title: values.title,
+                description: values.description,
+                location: values.location,
+                rate: Number(values.rate),
+                rateUnit: values.rateUnit,
+                startTime: values.startTime,
+                endTime: values.endTime,
+                categoryIds: values.categoryIds,
+                coverPhotoUrl: URL.createObjectURL(values.coverPhoto),
+                status: "PUBLISHED",
+                bookingsThisMonth: 0,
             };
+            myServices.unshift(service);
+            return { service };
+        }
     }
 }

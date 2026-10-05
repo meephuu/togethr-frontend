@@ -72,6 +72,18 @@ export async function getMyProviderStatus() {
 }
 
 /**
+ * The signed-in provider's services, published and unpublished, for My services
+ * (US4-4). No pagination: a provider rarely has more than a handful.
+ * Proposed: GET /api/providers/me/services → Service[] (an empty array, not an
+ * error, when the provider has none). Field names to confirm with Mee.
+ * @returns {Promise<Service[]>}
+ */
+export async function getMyServices() {
+    if (USE_MOCKS) return mocks.getMyServices();
+    return request(OpenAPI, { method: "GET", url: "/providers/me/services" });
+}
+
+/**
  * Publishes a service.
  * Proposed: POST /api/services as multipart/form-data. categoryIds is sent as a
  * repeated `categoryIds` field.

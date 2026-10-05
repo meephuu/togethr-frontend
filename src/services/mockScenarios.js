@@ -22,6 +22,14 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    myServices: {
+        label: "My services",
+        options: {
+            list: "Services list",
+            empty: "Empty list",
+            network: "Network error",
+        },
+    },
 };
 
 // In-memory copy, so switching still works for this tab when storage is blocked.

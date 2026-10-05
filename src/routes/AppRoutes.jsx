@@ -12,6 +12,7 @@ import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
+import MyServicesPage from "../pages/provider/MyServicesPage";
 import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
 import { USE_MOCKS } from "../services/sprint2Api";
 
@@ -55,6 +56,10 @@ export default function AppRoutes() {
                     <Route
                         path="/provider/dashboard"
                         element={<ProviderDashboardPage />}
+                    />
+                    <Route
+                        path="/provider/services"
+                        element={<MyServicesPage />}
                     />
                     <Route
                         path="/provider/services/new"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navbar from "../../components/ui/Navbar";
+import PageShell from "../../components/ui/PageShell";
 import Button from "../../components/ui/Button";
 import { AlertCircleIcon } from "../../components/ui/Icons";
 import CoverPhotoPicker from "../../components/services/CoverPhotoPicker";
@@ -43,23 +43,6 @@ const SECTION_CLASS = `${CARD_CLASS} flex flex-col gap-5 p-6 sm:p-8`;
 function shortName(user) {
     const initial = user?.lastname ? ` ${user.lastname[0]}.` : "";
     return `${user?.firstname ?? ""}${initial}`.trim() || user?.username || "you";
-}
-
-function PageShell({ children, centered = false }) {
-    return (
-        <div className="flex min-h-screen flex-col bg-gray-50">
-            <Navbar />
-            <main
-                className={
-                    centered
-                        ? "flex flex-1 items-center justify-center px-4 py-12"
-                        : "mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-16 pt-8 sm:px-8"
-                }
-            >
-                {children}
-            </main>
-        </div>
-    );
 }
 
 function ErrorBanner({ detail }) {

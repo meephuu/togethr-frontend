@@ -53,6 +53,12 @@ export default function RoleDashboard({ role }) {
                     {role === "PROVIDER" && (
                         <div className="mt-6 flex justify-center gap-6">
                             <Link
+                                to="/provider/services"
+                                className="text-primary underline hover:text-primary-hover"
+                            >
+                                My services
+                            </Link>
+                            <Link
                                 to="/provider/services/new"
                                 className="text-primary underline hover:text-primary-hover"
                             >
