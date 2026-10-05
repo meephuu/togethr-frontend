@@ -5,11 +5,8 @@ import { AuthService } from "../../services/generated";
 import { dashboardFor } from "../../lib/roles";
 import logo from "../../assets/temp-logo-black.png";
 
-const Navbar = (
-    {
-        //for future customization
-    },
-) => {
+// children: an optional second row inside the sticky nav, e.g. ProviderTabs.
+const Navbar = ({ children }) => {
     const navigate = useNavigate();
     const { user, setUser, isAuthenticated } = useAuth();
 
@@ -141,6 +138,7 @@ const Navbar = (
                     </div>
                 </div>
             </div>
+            {children}
         </nav>
     );
 };

@@ -100,3 +100,8 @@ the future, ignore only `src/services/generated/` and keep the `prebuild` script
 
 API requests use `http://localhost:8080/api` by default. Set
 `VITE_API_BASE_URL` to use a different backend URL.
+
+Sprint 2 provider pages call endpoints that aren't built yet. All of those calls
+live in `src/services/sprint2Api.js`. Set `VITE_USE_MOCKS=true` (see
+`.env.example`) to use the in-browser mocks; a "Mocks" button in the bottom-left
+corner then picks which response each call returns, including error cases.
