@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
+import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
 import { AlertCircleIcon } from "../../components/ui/Icons";
 import CoverPhotoPicker from "../../components/services/CoverPhotoPicker";
@@ -194,7 +195,7 @@ export default function CreateServicePage() {
 
     if (loadState === "loading") {
         return (
-            <PageShell centered>
+            <PageShell centered subnav={<ProviderTabs />}>
                 <p className="text-text-muted" role="status">
                     Checking your provider account…
                 </p>
@@ -204,7 +205,7 @@ export default function CreateServicePage() {
 
     if (loadState === "error") {
         return (
-            <PageShell centered>
+            <PageShell centered subnav={<ProviderTabs />}>
                 <div className={`${CARD_CLASS} flex max-w-md flex-col items-center gap-4 p-8 text-center`}>
                     <p className="font-semibold text-text-main">We couldn't load this page.</p>
                     <p className="text-sm text-text-muted">Check your connection and try again.</p>
@@ -223,7 +224,7 @@ export default function CreateServicePage() {
 
     if (providerStatus !== APPROVED_PROVIDER_STATUS) {
         return (
-            <PageShell centered>
+            <PageShell centered subnav={<ProviderTabs />}>
                 <ProviderPendingNotice />
             </PageShell>
         );
@@ -232,7 +233,7 @@ export default function CreateServicePage() {
     const describe = (id, error) => (error ? `${id}-error` : undefined);
 
     return (
-        <PageShell>
+        <PageShell subnav={<ProviderTabs />}>
             <div className="flex flex-col gap-2">
                 <nav aria-label="Breadcrumb" className="text-sm text-text-muted">
                     <Link to="/provider/dashboard" className="hover:text-text-main hover:underline">
@@ -467,7 +468,7 @@ export default function CreateServicePage() {
                     </fieldset>
                 </form>
 
-                <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-28 lg:w-[408px] lg:shrink-0">
+                <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-40 lg:w-[408px] lg:shrink-0">
                     <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                         Preview in search results
                     </p>

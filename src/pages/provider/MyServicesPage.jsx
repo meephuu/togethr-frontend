@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
+import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
 import ComingSoon from "../../components/ui/ComingSoon";
 import { AlertCircleIcon, BriefcaseIcon, PlusIcon } from "../../components/ui/Icons";
@@ -196,7 +197,7 @@ export default function MyServicesPage() {
     }
 
     return (
-        <PageShell>
+        <PageShell subnav={<ProviderTabs />}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-[28px] text-text-main">My services</h1>

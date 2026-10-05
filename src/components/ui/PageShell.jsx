@@ -2,10 +2,11 @@ import Navbar from "./Navbar";
 
 // Gray page with the Navbar. `centered` is for single-card screens
 // (loading, errors, notices); otherwise content sits in the 7xl column.
-export default function PageShell({ children, centered = false }) {
+// `subnav` is a second Navbar row, e.g. <ProviderTabs />.
+export default function PageShell({ children, centered = false, subnav = null }) {
     return (
         <div className="flex min-h-screen flex-col bg-gray-50">
-            <Navbar />
+            <Navbar>{subnav}</Navbar>
             <main
                 className={
                     centered

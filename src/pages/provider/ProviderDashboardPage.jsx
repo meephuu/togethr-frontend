@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
+import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
 import Toast from "../../components/ui/Toast";
 import ComingSoon from "../../components/ui/ComingSoon";
@@ -204,7 +205,7 @@ export default function ProviderDashboardPage() {
     };
 
     return (
-        <PageShell>
+        <PageShell subnav={<ProviderTabs />}>
             {publishedService && (
                 <Toast title="Service published" onDismiss={() => setPublishedService(null)}>
                     <p className="text-text-muted">“{publishedService.title}” is now live in search.</p>
