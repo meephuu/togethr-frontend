@@ -8,10 +8,10 @@ import SignUpPage from "../pages/public/SignUpPage";
 import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
 import PublicProfilePage from "../pages/public/PublicProfilePage";
 import ProfileEditPage from "../pages/private/ProfileEditPage";
+import DevFiltersPage from "../pages/dev/DevFiltersPage";
 import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
-import DevFiltersPage from "../pages/dev/DevFiltersPage";
 
 // ==========================================
 // Temp Pages Import
