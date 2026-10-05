@@ -11,6 +11,9 @@ import ProfileEditPage from "../pages/private/ProfileEditPage";
 import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
+import CreateServicePage from "../pages/provider/CreateServicePage";
+import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
+import { USE_MOCKS } from "../services/sprint2Api";
 
 // ==========================================
 // Temp Pages Import
@@ -53,11 +56,16 @@ export default function AppRoutes() {
                         path="/provider/dashboard"
                         element={<ProviderDashboardPage />}
                     />
+                    <Route
+                        path="/provider/services/new"
+                        element={<CreateServicePage />}
+                    />
                 </Route>
 
                 <Route path="*" element={<Home />} />
             </Routes>
             <CookieConsentBanner />
+            {USE_MOCKS && <MockScenarioSwitcher />}
         </BrowserRouter>
     );
 }
