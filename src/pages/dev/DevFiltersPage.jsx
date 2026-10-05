@@ -10,7 +10,7 @@ import { useSearchFilters } from "../../hooks/useSearchFilters";
 // cards, empty state and paging here are throwaway; mount FilterPanel and
 // ActiveFilterChips on the real page and delete this file.
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 6;
 
 // Sample results, from the filter-panel mockup plus a few more for variety.
 const MOCK_SERVICES = [
