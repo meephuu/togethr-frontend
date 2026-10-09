@@ -1,24 +1,29 @@
 import { Link, useLocation } from "react-router-dom";
-
-// Customer tabs from the search design, rendered as the Navbar's second row
-// (same look as ProviderTabs). Find Service points at the temporary filter
-// page until Mee's search page (US5-1) exists; My Booking has no page yet.
-const TABS = [
-    { label: "Home", to: "/", paths: ["/"] },
-    { label: "Find Service", to: "/dev/filters", paths: ["/dev/filters"] },
-    { label: "My Booking" },
-];
+import { useAuth } from "../../hooks/useAuth";
+import { DASHBOARD_BY_ROLE, hasRole } from "../../lib/roles";
 
 const TAB_CLASS = "whitespace-nowrap border-b-2 py-3.5 text-sm";
 
 export default function CustomerTabs() {
     const { pathname } = useLocation();
+    const { user } = useAuth();
     const current = pathname.replace(/(.)\/+$/, "$1");
+
+    const tabs = [
+        { label: "Home", to: "/customer/dashboard", paths: ["/customer/dashboard"] },
+        { label: "Find Service" },
+        { label: "My Booking" },
+        {
+            label: hasRole(user, "PROVIDER") ? "Switch to Provider Dashboard" : "Become a Provider",
+            to: hasRole(user, "PROVIDER") ? DASHBOARD_BY_ROLE.PROVIDER : "/provider-registration",
+            paths: [],
+        }
+    ];
 
     return (
         <nav aria-label="Main sections" className="mx-auto max-w-7xl px-8">
             <div className="thin-scrollbar flex gap-8 overflow-x-auto border-t border-gray-100">
-                {TABS.map((tab) => {
+                {tabs.map((tab) => {
                     if (!tab.to) {
                         return (
                             <span

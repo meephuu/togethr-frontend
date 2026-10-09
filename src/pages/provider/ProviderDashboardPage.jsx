@@ -224,17 +224,6 @@ export default function ProviderDashboardPage() {
                     </h1>
                     <p className="text-text-muted">
                         Here's what's happening with your services.
-                        {hasRole(user, "CUSTOMER") && (
-                            <>
-                                {" "}
-                                <Link
-                                    to={DASHBOARD_BY_ROLE.CUSTOMER}
-                                    className="text-primary underline hover:text-primary-hover"
-                                >
-                                    Switch to your Customer dashboard
-                                </Link>
-                            </>
-                        )}
                     </p>
                 </div>
                 <Button onClick={() => navigate("/provider/services/new")} leftIcon={<PlusIcon size={18} />}>
