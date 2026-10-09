@@ -1,25 +1,33 @@
 import { Link, useLocation } from "react-router-dom";
-
-// Provider section tabs, rendered as the Navbar's second row. Tabs without a
-// `to` have no page yet (booking requests US6-2, availability US4-2).
-// Create service counts as Dashboard, as in the design's breadcrumb.
-const TABS = [
-    { label: "Dashboard", to: "/provider/dashboard", paths: ["/provider/dashboard", "/provider/services/new"] },
-    { label: "My services", to: "/provider/services", paths: ["/provider/services"] },
-    { label: "Booking requests" },
-    { label: "Availability" },
-];
+import { useAuth } from "../../hooks/useAuth";
+import { DASHBOARD_BY_ROLE, hasRole } from "../../lib/roles";
 
 const TAB_CLASS = "whitespace-nowrap border-b-2 py-3.5 text-sm";
 
 export default function ProviderTabs() {
     const { pathname } = useLocation();
+    const { user } = useAuth();
     const current = pathname.replace(/\/+$/, "");
+
+    const tabs = [
+        { label: "Dashboard", to: "/provider/dashboard", paths: ["/provider/dashboard", "/provider/services/new"] },
+        { label: "My services", to: "/provider/services", paths: ["/provider/services"] },
+        { label: "Booking requests" },
+        { label: "Availability" },
+    ];
+
+    if (hasRole(user, "CUSTOMER")) {
+        tabs.push({
+            label: "Switch to Customer Dashboard",
+            to: DASHBOARD_BY_ROLE.CUSTOMER,
+            paths: []
+        });
+    }
 
     return (
         <nav aria-label="Provider sections" className="mx-auto max-w-7xl px-8">
             <div className="thin-scrollbar flex gap-8 overflow-x-auto border-t border-gray-100">
-                {TABS.map((tab) => {
+                {tabs.map((tab) => {
                     if (!tab.to) {
                         return (
                             <span

@@ -14,6 +14,7 @@ import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
 import MyServicesPage from "../pages/provider/MyServicesPage";
+import ServiceDetailPage from "../pages/public/ServiceDetailPage";
 import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
 import { USE_MOCKS } from "../services/sprint2Api";
 
@@ -43,6 +44,7 @@ export default function AppRoutes() {
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/profile/edit" element={<ProfileEditPage />} />
                 <Route path="/profile/:id" element={<PublicProfilePage />} />
+                <Route path="/services/:id" element={<ServiceDetailPage />} />
 
                 {/* customer */}
                 <Route element={<RoleRoute allowedRole="CUSTOMER" />}>
