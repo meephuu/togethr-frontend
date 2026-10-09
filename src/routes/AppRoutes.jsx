@@ -8,9 +8,14 @@ import SignUpPage from "../pages/public/SignUpPage";
 import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
 import PublicProfilePage from "../pages/public/PublicProfilePage";
 import ProfileEditPage from "../pages/private/ProfileEditPage";
+import DevFiltersPage from "../pages/dev/DevFiltersPage";
 import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
+import CreateServicePage from "../pages/provider/CreateServicePage";
+import MyServicesPage from "../pages/provider/MyServicesPage";
+import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
+import { USE_MOCKS } from "../services/sprint2Api";
 
 // ==========================================
 // Temp Pages Import
@@ -53,11 +58,25 @@ export default function AppRoutes() {
                         path="/provider/dashboard"
                         element={<ProviderDashboardPage />}
                     />
+                    <Route
+                        path="/provider/services"
+                        element={<MyServicesPage />}
+                    />
+                    <Route
+                        path="/provider/services/new"
+                        element={<CreateServicePage />}
+                    />
                 </Route>
+
+                {/* dev only: filter panel test page until the search page (US5-1) exists */}
+                {import.meta.env.DEV && (
+                    <Route path="/dev/filters" element={<DevFiltersPage />} />
+                )}
 
                 <Route path="*" element={<Home />} />
             </Routes>
             <CookieConsentBanner />
+            {USE_MOCKS && <MockScenarioSwitcher />}
         </BrowserRouter>
     );
 }
