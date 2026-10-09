@@ -3,6 +3,23 @@ import { useParams } from "react-router-dom";
 import Navbar from "../../components/ui/Navbar";
 import Footer from "../../components/ui/Footer";
 import { ApiError, UsersService } from "../../services/generated";
+import { interestLabel, toArray } from "../../lib/providerOptions";
+
+function ChipGroup({ title, items }) {
+    if (items.length === 0) return null;
+    return (
+        <div>
+            <p className="text-sm font-medium text-text-main mb-2">{title}</p>
+            <div className="flex flex-wrap gap-2">
+                {items.map((item) => (
+                    <span key={item} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                        {item}
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+}
 
 export default function PublicProfilePage() {
     const { id } = useParams();
@@ -70,15 +87,15 @@ export default function PublicProfilePage() {
                                         ⭐ {profile.provider.avgRating} average rating
                                     </p>
                                 )}
-                                {profile.provider.languages && (
-                                    <p className="text-sm text-text-muted">
-                                        <span className="font-medium text-text-main">Languages: </span>
-                                        {profile.provider.languages}
-                                    </p>
-                                )}
                                 {profile.provider.bio && (
                                     <p className="text-sm text-text-muted leading-relaxed">{profile.provider.bio}</p>
                                 )}
+                                <ChipGroup title="Languages" items={toArray(profile.provider.languages)} />
+                                <ChipGroup
+                                    title="Interests"
+                                    items={toArray(profile.provider.interests).map(interestLabel)}
+                                />
+                                <ChipGroup title="Service area" items={toArray(profile.provider.serviceArea)} />
                             </div>
                         ) : (
                             <p className="text-sm text-text-muted">This user is a customer on Togethr.</p>
