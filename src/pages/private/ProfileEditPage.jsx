@@ -3,8 +3,15 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/ui/Navbar";
 import Footer from "../../components/ui/Footer";
 import Button from "../../components/ui/Button";
+import ChipSelect from "../../components/ui/ChipSelect";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, UsersService } from "../../services/generated";
+import {
+    INTEREST_OPTIONS,
+    LANGUAGE_OPTIONS,
+    SERVICE_AREA_OPTIONS,
+    toArray,
+} from "../../lib/providerOptions";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -20,7 +27,9 @@ const emptyForm = {
     line: "",
     facebook: "",
     bio: "",
-    languages: "",
+    languages: [],
+    interests: [],
+    serviceArea: [],
 };
 
 function toDateInputValue(value) {
@@ -65,7 +74,9 @@ export default function ProfileEditPage() {
                     line: profile.line ?? "",
                     facebook: profile.facebook ?? "",
                     bio: profile.provider?.bio ?? "",
-                    languages: profile.provider?.languages ?? "",
+                    languages: toArray(profile.provider?.languages),
+                    interests: toArray(profile.provider?.interests),
+                    serviceArea: toArray(profile.provider?.serviceArea),
                 });
                 setIsProvider(!!profile.provider);
             })
@@ -90,6 +101,14 @@ export default function ProfileEditPage() {
         }
     };
 
+    const handleChipsChange = (name) => (selected) => {
+        setFormData((prev) => ({ ...prev, [name]: selected }));
+        setSuccessMessage("");
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+        }
+    };
+
     const validate = () => {
         const newErrors = {};
 
@@ -97,6 +116,9 @@ export default function ProfileEditPage() {
         if (!formData.lastname.trim()) newErrors.lastname = "Last name is required";
         if (formData.email && !emailRegex.test(formData.email)) {
             newErrors.email = "Please enter a valid email address";
+        }
+        if (isProvider && formData.languages.length === 0) {
+            newErrors.languages = "Please select at least one language";
         }
 
         setFieldErrors(newErrors);
@@ -127,7 +149,9 @@ export default function ProfileEditPage() {
 
             if (isProvider) {
                 requestBody.bio = formData.bio;
-                requestBody.languages = formData.languages;
+                requestBody.languages = formData.languages.join(", ");
+                requestBody.interests = formData.interests;
+                requestBody.serviceArea = formData.serviceArea;
             }
 
             const response = await UsersService.updateMyProfile({ requestBody });
@@ -308,18 +332,37 @@ export default function ProfileEditPage() {
                                         className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-text-main mb-2">Languages</label>
-                                    <input
-                                        name="languages"
-                                        type="text"
-                                        placeholder="e.g. English, Thai"
-                                        value={formData.languages}
-                                        onChange={handleChange}
-                                        disabled={isSubmitting}
-                                        className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                                    />
-                                </div>
+                                <section className="space-y-8 pt-8 mt-4 border-t border-gray-100">
+                                    <div>
+                                        <h2 className="text-lg text-text-main">Provider details</h2>
+                                        <p className="text-sm text-text-muted mt-1">Customers use these to find and match with you.</p>
+                                    </div>
+                                <ChipSelect
+                                    label="Languages"
+                                    hint="Select at least one"
+                                    required
+                                    options={LANGUAGE_OPTIONS}
+                                    value={formData.languages}
+                                    onChange={handleChipsChange("languages")}
+                                    error={fieldErrors.languages}
+                                    disabled={isSubmitting}
+                                />
+                                <ChipSelect
+                                    label="Interests"
+                                    options={INTEREST_OPTIONS}
+                                    value={formData.interests}
+                                    onChange={handleChipsChange("interests")}
+                                    disabled={isSubmitting}
+                                />
+                                <ChipSelect
+                                    label="Service area"
+                                    hint="Where you can meet customers"
+                                    options={SERVICE_AREA_OPTIONS}
+                                    value={formData.serviceArea}
+                                    onChange={handleChipsChange("serviceArea")}
+                                    disabled={isSubmitting}
+                                />
+                                </section>
                             </>
                         )}
 
@@ -330,7 +373,7 @@ export default function ProfileEditPage() {
                             <p className="text-sm text-green-600" role="status">{successMessage}</p>
                         )}
 
-                        <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting}>
+                        <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSubmitting}>
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </Button>
                     </form>
