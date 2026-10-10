@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../../components/ui/Navbar';
 import CustomerTabs from '../../components/customer/CustomerTabs';
 import ServiceCard from '../../components/search/ServiceCard';
@@ -122,15 +122,24 @@ export default function CustomerDashboardPage() {
                 {/* Categories */}
                 <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                        {categories.map(cat => (
-                            <div key={cat.name} className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm group">
-                                <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors" />
-                                <div className="absolute bottom-4 right-4 text-right">
-                                    <span style={{ fontFamily: 'var(--font-heading)' }} className="text-white font-medium text-xl drop-shadow-md tracking-wide">{cat.name}</span>
-                                </div>
-                            </div>
-                        ))}
+                        {categories.map(cat => {
+                            const searchName = cat.name === "Foodie Trip" ? "Food tour" 
+                                             : cat.name === "Adventure" ? "Nature & Hiking" 
+                                             : cat.name;
+                            return (
+                                <Link 
+                                    key={cat.name} 
+                                    to={`/search?interests=${encodeURIComponent(searchName)}`}
+                                    className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm group block"
+                                >
+                                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors" />
+                                    <div className="absolute bottom-4 right-4 text-right">
+                                        <span style={{ fontFamily: 'var(--font-heading)' }} className="text-white font-medium text-xl drop-shadow-md tracking-wide">{cat.name}</span>
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
 
