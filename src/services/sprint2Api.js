@@ -51,7 +51,8 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
  */
 export async function getCategories() {
     if (USE_MOCKS) return mocks.getCategories();
-    const rows = await request(OpenAPI, { method: "GET", url: "/categories" });
+    const res = await request(OpenAPI, { method: "GET", url: "/categories" });
+    const rows = res.categories || res;
     return rows.map((row) => ({ id: row.id, name: row.category ?? row.name }));
 }
 
@@ -93,5 +94,19 @@ export async function createService(values) {
             categoryIds: values.categoryIds,
             coverPhoto: values.coverPhoto,
         },
+    });
+}
+
+/**
+ * Searches for services.
+ * @param {URLSearchParams} searchParams
+ * @returns {Promise<{ data: Service[], meta: { totalCount, currentPage, totalPages, limit } }>}
+ */
+export async function searchServices(searchParams) {
+    if (USE_MOCKS) return mocks.searchServices(searchParams);
+    return request(OpenAPI, {
+        method: "GET",
+        url: "/services/search",
+        query: Object.fromEntries(searchParams.entries())
     });
 }

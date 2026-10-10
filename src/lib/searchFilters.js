@@ -16,15 +16,7 @@ export const GENDER_OPTIONS = [
     { value: "O", label: "Other" },
 ];
 
-// Placeholders until Mee's US3-2 adds interests to the schema.
-export const INTEREST_OPTIONS = [
-    { value: "food", label: "Food" },
-    { value: "photography", label: "Photography" },
-    { value: "temples-culture", label: "Temples & culture" },
-    { value: "shopping", label: "Shopping" },
-    { value: "nightlife", label: "Nightlife" },
-    { value: "nature", label: "Nature" },
-];
+// Interests are now fetched dynamically from the DB and passed where needed.
 
 export const RATING_OPTIONS = [
     { value: "", label: "Any rating" },
@@ -64,11 +56,10 @@ function parseCount(raw) {
 export function parseFilters(searchParams) {
     const gender = searchParams.get("gender") ?? "";
     const minRating = searchParams.get("minRating") ?? "";
-    const known = INTEREST_OPTIONS.map((option) => option.value);
     const interests = (searchParams.get("interests") ?? "")
         .split(",")
         .map((value) => value.trim())
-        .filter((value, index, all) => known.includes(value) && all.indexOf(value) === index);
+        .filter((value, index, all) => value && all.indexOf(value) === index);
 
     const filters = {
         ...EMPTY_FILTERS,
@@ -151,7 +142,7 @@ export function getFilterChips(filters) {
     filters.interests.forEach((interest) => {
         chips.push({
             key: `interest-${interest}`,
-            label: labelOf(INTEREST_OPTIONS, interest),
+            label: interest,
             remove: (f) => ({ ...f, interests: f.interests.filter((value) => value !== interest) }),
         });
     });
