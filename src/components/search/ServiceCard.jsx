@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
-import { StarFilledIcon, UserIcon } from "../ui/icons";
+import { StarFilledIcon } from "../ui/Icons";
+import Avatar from "../ui/Avatar";
+import { assetUrl } from "../../lib/assets";
 
 export default function ServiceCard({ service }) {
-    // service has: id, title, location, rate, rateUnit, coverPhotoUrl, provider (firstname, lastname, avgRating), reviewCount
-    const imageUrl = service.coverPhotoUrl
-        ? (service.coverPhotoUrl.startsWith("http") ? service.coverPhotoUrl : `http://localhost:8081${service.coverPhotoUrl}`)
-        : "https://placehold.co/600x400/e2e8f0/64748b?text=No+image";
+    // service has: id, title, location, rate, rateUnit, coverPhotoUrl,
+    // provider (firstname, lastname, avgRating, profilePhotoUrl), reviewCount
+    const imageUrl =
+        assetUrl(service.coverPhotoUrl) ?? "https://placehold.co/600x400/e2e8f0/64748b?text=No+image";
 
     const hasReviews = service.provider.avgRating !== null && service.reviewCount > 0;
     
@@ -27,9 +29,12 @@ export default function ServiceCard({ service }) {
                 </p>
                 <p className="mt-1 text-[13px] text-text-muted">{service.location}</p>
                 <div className="mt-3 mb-5 flex items-center gap-2">
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
-                        <UserIcon size={12} />
-                    </div>
+                    <Avatar
+                        photoUrl={service.provider.profilePhotoUrl}
+                        firstname={service.provider.firstname}
+                        lastname={service.provider.lastname}
+                        size="xs"
+                    />
                     <span className="text-[13px] text-text-main">{service.provider.firstname}</span>
                 </div>
                 

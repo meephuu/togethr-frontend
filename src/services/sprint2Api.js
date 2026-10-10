@@ -98,7 +98,10 @@ export async function createService(values) {
 }
 
 /**
- * Searches for services.
+ * Searches published services. Pass the page's URL query as is: q, gender
+ * (M|F|O), minAge, maxAge, interests (comma-separated category names),
+ * minPrice, maxPrice, minRating, sortBy, page, limit.
+ * GET /api/services/search
  * @param {URLSearchParams} searchParams
  * @returns {Promise<{ data: Service[], meta: { totalCount, currentPage, totalPages, limit } }>}
  */
@@ -109,4 +112,17 @@ export async function searchServices(searchParams) {
         url: "/services/search",
         query: Object.fromEntries(searchParams.entries())
     });
+}
+
+/**
+ * One service for the detail page (US5-3), with categories, reviews and the
+ * provider. GET /api/services/:id
+ * - 404 when it doesn't exist; 410 when the provider unpublished it
+ * @param {string} id
+ * @returns {Promise<Object>} the service
+ */
+export async function getServiceById(id) {
+    if (USE_MOCKS) return mocks.getServiceById(id);
+    const { service } = await request(OpenAPI, { method: "GET", url: "/services/{id}", path: { id } });
+    return service;
 }

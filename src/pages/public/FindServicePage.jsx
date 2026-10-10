@@ -6,19 +6,22 @@ import FilterPanel from "../../components/search/FilterPanel";
 import ActiveFilterChips from "../../components/search/ActiveFilterChips";
 import ServiceCard from "../../components/search/ServiceCard";
 import Button from "../../components/ui/Button";
-import { parseFilters, writeFilters, getFilterChips, EMPTY_FILTERS } from "../../lib/searchFilters";
-import { getCategories, searchServices } from "../../services/sprint2Api";
+import { useSearchFilters } from "../../hooks/useSearchFilters";
+import { ApiError, getCategories, searchServices } from "../../services/sprint2Api";
 
 export default function FindServicePage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [categories, setCategories] = useState([]);
-    
+
     // search result state
     const [results, setResults] = useState({ data: [], meta: null });
     const [status, setStatus] = useState("loading"); // loading, ready, error
+    const [errorMessage, setErrorMessage] = useState("");
 
-    const filters = parseFilters(searchParams);
-    const chips = getFilterChips(filters);
+    // The URL is the source of truth for the filters (US5-2). `key` changes
+    // whenever the applied filters do, which resets the panel's draft.
+    const { filters, key: filtersKey, chips, rangeErrors, isValid, applyFilters, removeChip, clearAll } =
+        useSearchFilters();
 
     const query = searchParams.get("q") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -31,10 +34,14 @@ export default function FindServicePage() {
     }, []);
 
     useEffect(() => {
+        // A min > max range (e.g. typed into the URL) never reaches the API;
+        // the panel shows the message instead (US5-2 acceptance criterion).
+        if (!isValid) return undefined;
+
         let cancelled = false;
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setStatus("loading");
-        
+
         const apiParams = new URLSearchParams(searchParams);
         if (!apiParams.has("limit")) {
             apiParams.set("limit", "6");
@@ -49,23 +56,18 @@ export default function FindServicePage() {
             })
             .catch((err) => {
                 console.error("Search error:", err);
-                if (!cancelled) setStatus("error");
+                if (cancelled) return;
+                // The server repeats the min/max checks; show its message.
+                setErrorMessage(
+                    err instanceof ApiError && err.status === 400 && err.body?.error
+                        ? err.body.error
+                        : "Failed to load search results. Please try again.",
+                );
+                setStatus("error");
             });
 
         return () => { cancelled = true; };
-    }, [searchParams]);
-
-    const handleApplyFilters = (newFilters) => {
-        setSearchParams(writeFilters(searchParams, newFilters));
-    };
-
-    const handleRemoveChip = (chip) => {
-        setSearchParams(writeFilters(searchParams, chip.remove(filters)));
-    };
-
-    const handleClearAll = () => {
-        setSearchParams(writeFilters(searchParams, EMPTY_FILTERS));
-    };
+    }, [searchParams, isValid]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -81,6 +83,7 @@ export default function FindServicePage() {
     const handleSortChange = (e) => {
         const next = new URLSearchParams(searchParams);
         next.set("sortBy", e.target.value);
+        next.delete("page"); // a new order starts from page 1
         setSearchParams(next);
     };
 
@@ -124,17 +127,18 @@ export default function FindServicePage() {
 
                 <div className="flex w-full flex-col items-start gap-8 lg:flex-row">
                     <FilterPanel
+                        key={filtersKey}
                         filters={filters}
                         categories={categories}
-                        onApply={handleApplyFilters}
-                        onClearAll={handleClearAll}
+                        onApply={applyFilters}
+                        onClearAll={clearAll}
                     />
 
                     <div className="flex-1 min-w-0">
                         {/* Header for Results */}
                         <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                             <h1 className="text-2xl font-bold text-text-main">
-                                {totalCount} {totalCount === 1 ? "service" : "services"} match
+                                {isValid ? `${totalCount} ${totalCount === 1 ? "service" : "services"} match` : "Check your filters"}
                             </h1>
                             <div className="flex items-center gap-2 text-sm text-text-muted">
                                 <span>Sorted by</span>
@@ -153,24 +157,29 @@ export default function FindServicePage() {
 
                         <ActiveFilterChips
                             chips={chips}
-                            onRemove={handleRemoveChip}
-                            onClearAll={handleClearAll}
+                            onRemove={removeChip}
+                            onClearAll={clearAll}
                         />
 
                         {/* Grid */}
                         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                            {status === "loading" && Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i} className="aspect-[3/2] animate-pulse rounded-2xl bg-gray-200" />
-                            ))}
-                            {status === "ready" && results.data.map(service => (
-                                <ServiceCard key={service.id} service={service} />
-                            ))}
-                            {status === "error" && (
-                                <div className="col-span-full py-12 text-center text-red-500">
-                                    Failed to load search results. Please try again.
+                            {!isValid && (
+                                <div role="alert" className="col-span-full py-12 text-center text-red-600">
+                                    {Object.values(rangeErrors).join(" ")}
                                 </div>
                             )}
-                            {status === "ready" && results.data.length === 0 && (
+                            {isValid && status === "loading" && Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="aspect-[3/2] animate-pulse rounded-2xl bg-gray-200" />
+                            ))}
+                            {isValid && status === "ready" && results.data.map(service => (
+                                <ServiceCard key={service.id} service={service} />
+                            ))}
+                            {isValid && status === "error" && (
+                                <div role="alert" className="col-span-full py-12 text-center text-red-600">
+                                    {errorMessage}
+                                </div>
+                            )}
+                            {isValid && status === "ready" && results.data.length === 0 && (
                                 <div className="col-span-full py-12 text-center text-gray-500">
                                     No services found matching your criteria.
                                 </div>
@@ -178,7 +187,7 @@ export default function FindServicePage() {
                         </div>
 
                         {/* Pagination */}
-                        {totalPages > 1 && (
+                        {isValid && totalPages > 1 && (
                             <div className="mt-12 flex justify-center gap-2">
                                 <button
                                     onClick={() => handlePageChange(page - 1)}
