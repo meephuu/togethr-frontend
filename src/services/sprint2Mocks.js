@@ -28,7 +28,7 @@ const CATEGORIES = [
     { id: "cat-photography", name: "Photography" },
     { id: "cat-shopping", name: "Shopping" },
     { id: "cat-nightlife", name: "Nightlife" },
-    { id: "cat-nature-hiking", name: "Nature & hiking" },
+    { id: "cat-nature-hiking", name: "Nature & Hiking" },
 ];
 
 // The provider's services, as in the My services mockup. Services published
@@ -142,7 +142,7 @@ const SEARCH_SERVICES = [
     { id: "mock-6", title: "Ari café and brunch hop", location: "Bangkok – Ari", rate: 350, provider: ["Ploy", "S.", 4.4], gender: "F", age: 27, categories: ["Food tour"], reviewCount: 9 },
     { id: "mock-7", title: "Khao San after-dark tour", location: "Bangkok – Banglamphu", rate: 400, provider: ["Tom", "W.", 4.2], gender: "M", age: 26, categories: ["Nightlife"], reviewCount: 15 },
     { id: "mock-8", title: "Chatuchak market shopping day", location: "Bangkok – Chatuchak", rate: 380, provider: ["Ben", "C.", 3.9], gender: "M", age: 34, categories: ["Shopping", "Food tour"], reviewCount: 22 },
-    { id: "mock-9", title: "Khao Yai nature hike", location: "Nakhon Ratchasima – Khao Yai", rate: 900, provider: ["Sam", "R.", 4.9], gender: "O", age: 38, categories: ["Nature & hiking", "Photography"], reviewCount: 7 },
+    { id: "mock-9", title: "Khao Yai nature hike", location: "Nakhon Ratchasima – Khao Yai", rate: 900, provider: ["Sam", "R.", 4.9], gender: "O", age: 38, categories: ["Nature & Hiking", "Photography"], reviewCount: 7 },
     { id: "mock-10", title: "Wat Pho and Grand Palace guide", location: "Bangkok – Rattanakosin", rate: 650, provider: ["Anan", "T.", 3.4], gender: "M", age: 45, categories: ["Sightseeing"], reviewCount: 11 },
 ].map(({ provider: [firstname, lastname, avgRating], ...service }) => ({
     ...service,
