@@ -28,8 +28,12 @@ function TypewriterHeading() {
             if (charIndex > 0) {
                 timeout = setTimeout(() => setCharIndex(c => c - 1), 20);
             } else {
-                setIsDeleting(false);
-                setPhraseIndex((prev) => (prev + 1) % TYPING_PHRASES.length);
+                // Via a timer like the other steps: setting state directly in
+                // the effect body would re-render in a cascade.
+                timeout = setTimeout(() => {
+                    setIsDeleting(false);
+                    setPhraseIndex((prev) => (prev + 1) % TYPING_PHRASES.length);
+                }, 0);
             }
         } else {
             if (charIndex < currentPhrase.length) {
@@ -81,10 +85,10 @@ export default function CustomerDashboardPage() {
     };
 
     const categories = [
-        { name: "Foodie Trip", image: "/catagories/food.png" },
-        { name: "Photography", image: "/catagories/photography.png" },
-        { name: "Adventure", image: "/catagories/adventure.png" },
-        { name: "Nightlife", image: "/catagories/nightlife.png" },
+        { name: "Foodie Trip", image: "/catagories/food.jpg" },
+        { name: "Photography", image: "/catagories/photography.jpg" },
+        { name: "Adventure", image: "/catagories/adventure.jpg" },
+        { name: "Nightlife", image: "/catagories/nightlife.jpg" },
     ];
 
     return (

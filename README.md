@@ -98,8 +98,8 @@ to Git so a fresh clone can run immediately and generated API changes can be
 reviewed in pull requests. If the team decides not to commit generated files in
 the future, ignore only `src/services/generated/` and keep the `prebuild` script.
 
-API requests use `http://localhost:8080/api` by default. Set
-`VITE_API_BASE_URL` to use a different backend URL.
+API requests use `http://localhost:3000/api` by default (the backend's default
+port). Set `VITE_API_BASE_URL` to use a different backend URL.
 
 Sprint 2 provider pages call endpoints that aren't built yet. All of those calls
 live in `src/services/sprint2Api.js`. Set `VITE_USE_MOCKS=true` (see
