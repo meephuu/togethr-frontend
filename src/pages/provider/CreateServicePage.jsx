@@ -8,15 +8,8 @@ import CoverPhotoPicker from "../../components/services/CoverPhotoPicker";
 import CategoryChips from "../../components/services/CategoryChips";
 import ServicePreviewCard from "../../components/services/ServicePreviewCard";
 import PublishChecklist from "../../components/services/PublishChecklist";
-import ProviderPendingNotice from "../../components/services/ProviderPendingNotice";
 import { useAuth } from "../../hooks/useAuth";
-import {
-    APPROVED_PROVIDER_STATUS,
-    ApiError,
-    createService,
-    getCategories,
-    getMyProviderStatus,
-} from "../../services/sprint2Api";
+import { ApiError, createService, getCategories } from "../../services/sprint2Api";
 import {
     LOCATION_MAX_LENGTH,
     TITLE_MAX_LENGTH,
@@ -67,7 +60,6 @@ export default function CreateServicePage() {
 
     const [loadState, setLoadState] = useState("loading"); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
-    const [providerStatus, setProviderStatus] = useState(null);
     const [categories, setCategories] = useState([]);
 
     const [values, setValues] = useState(emptyForm);
@@ -81,10 +73,9 @@ export default function CreateServicePage() {
     useEffect(() => {
         let cancelled = false;
 
-        Promise.all([getMyProviderStatus(), getCategories()])
-            .then(([status, categoryList]) => {
+        getCategories()
+            .then((categoryList) => {
                 if (cancelled) return;
-                setProviderStatus(status);
                 setCategories(categoryList);
                 setLoadState("ready");
             })
@@ -173,9 +164,7 @@ export default function CreateServicePage() {
                 state: { publishedService: { id: service.id, title: service.title } },
             });
         } catch (error) {
-            if (error instanceof ApiError && error.status === 403) {
-                setProviderStatus(null);
-            } else if (error instanceof ApiError && error.status === 400) {
+            if (error instanceof ApiError && error.status === 400) {
                 const mapped = mapServerErrors(error.body?.errors);
                 if (Object.keys(mapped).length > 0) {
                     setServerErrors(mapped);
@@ -197,7 +186,7 @@ export default function CreateServicePage() {
         return (
             <PageShell centered subnav={<ProviderTabs />}>
                 <p className="text-text-muted" role="status">
-                    Checking your provider account…
+                    Loading…
                 </p>
             </PageShell>
         );
@@ -218,14 +207,6 @@ export default function CreateServicePage() {
                         Try again
                     </Button>
                 </div>
-            </PageShell>
-        );
-    }
-
-    if (providerStatus !== APPROVED_PROVIDER_STATUS) {
-        return (
-            <PageShell centered subnav={<ProviderTabs />}>
-                <ProviderPendingNotice />
             </PageShell>
         );
     }

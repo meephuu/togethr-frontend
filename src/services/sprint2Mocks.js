@@ -90,15 +90,8 @@ export async function getMyServices() {
 
 export async function getCategories() {
     await wait();
-    if (getMockScenario("providerStatus") === "network") throw networkError();
+    if (getMockScenario("categories") === "network") throw networkError();
     return CATEGORIES;
-}
-
-export async function getMyProviderStatus() {
-    await wait();
-    const scenario = getMockScenario("providerStatus");
-    if (scenario === "network") throw networkError();
-    return scenario === "approved" ? "APPROVED" : "PENDING";
 }
 
 export async function createService(values) {
@@ -113,10 +106,6 @@ export async function createService(values) {
                     rate: "rate must be greater than 0",
                     endTime: "endTime must be later than startTime",
                 },
-            });
-        case "notApproved":
-            throw httpError("POST", url, 403, "Forbidden", {
-                error: "Only approved providers can create services",
             });
         case "network":
             throw networkError();

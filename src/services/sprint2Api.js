@@ -5,17 +5,13 @@
 // Errors: an HTTP error rejects with ApiError (check `.status` and `.body`);
 // a network failure rejects with a plain Error. Same as the generated client.
 
-import { ApiError, OpenAPI, UsersService } from "./generated";
+import { ApiError, OpenAPI } from "./generated";
 import { request } from "./generated/core/request";
 import * as mocks from "./sprint2Mocks";
 
 export { ApiError };
 
 export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
-
-// Provider.status defaults to "PENDING" and no approved value exists anywhere
-// yet. "APPROVED" is a guess: confirm the exact string with the team.
-export const APPROVED_PROVIDER_STATUS = "APPROVED";
 
 /**
  * @typedef {Object} Category
@@ -60,18 +56,6 @@ export async function getCategories() {
 }
 
 /**
- * The signed-in provider's approval status, e.g. "PENDING" or "APPROVED".
- * The login user has no status field, so this reads GET /api/users/me and
- * expects `user.provider.status`, which the backend doesn't return yet.
- * @returns {Promise<string|null>} null when the backend sends no status
- */
-export async function getMyProviderStatus() {
-    if (USE_MOCKS) return mocks.getMyProviderStatus();
-    const { user } = await UsersService.getMyProfile();
-    return user.provider?.status ?? null;
-}
-
-/**
  * The signed-in provider's services, published and unpublished, for My services
  * (US4-4). No pagination: a provider rarely has more than a handful.
  * Proposed: GET /api/providers/me/services → Service[] (an empty array, not an
@@ -89,7 +73,7 @@ export async function getMyServices() {
  * repeated `categoryIds` field.
  * - 201 { service }
  * - 400 { errors: { field: message } }
- * - 403 when the provider isn't approved
+ * - 403 when the account has no provider profile
  * @param {NewService} values
  * @returns {Promise<{ service: Service }>}
  */
