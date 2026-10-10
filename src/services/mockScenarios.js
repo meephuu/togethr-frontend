@@ -5,11 +5,10 @@
 const STORAGE_KEY = "togethr.mockScenarios";
 
 export const MOCK_SCENARIOS = {
-    providerStatus: {
-        label: "Provider status",
+    categories: {
+        label: "Service categories",
         options: {
-            approved: "Approved",
-            pending: "Pending approval",
+            list: "Categories list",
             network: "Network error",
         },
     },
@@ -18,7 +17,6 @@ export const MOCK_SCENARIOS = {
         options: {
             success: "Success (201)",
             validation: "Validation errors (400)",
-            notApproved: "Not approved (403)",
             network: "Network error",
         },
     },

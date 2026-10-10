@@ -277,7 +277,7 @@ components:
     UserRole:
       type: string
       enum: [CUSTOMER, PROVIDER]
-      description: A profile the account holds. PROVIDER applies regardless of approval status.
+      description: A profile the account holds.
 
     BaseRegistrationFields:
       type: object
@@ -398,11 +398,7 @@ components:
 
     ProviderRegistrationDetails:
       type: object
-      required: [status]
       properties:
-        status:
-          type: string
-          example: PENDING
         idCard:
           type: string
           nullable: true

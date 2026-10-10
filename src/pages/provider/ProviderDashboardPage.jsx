@@ -9,8 +9,7 @@ import { CalendarIcon, PlusIcon } from "../../components/ui/Icons";
 import ServiceStatusPill from "../../components/services/ServiceStatusPill";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
 import { useAuth } from "../../hooks/useAuth";
-import { APPROVED_PROVIDER_STATUS, getMyProviderStatus, getMyServices } from "../../services/sprint2Api";
-import { DASHBOARD_BY_ROLE, hasRole } from "../../lib/roles";
+import { getMyServices } from "../../services/sprint2Api";
 import { RATE_UNIT_LABEL, formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 
@@ -21,24 +20,6 @@ const LINK_CLASS = "text-sm font-semibold text-primary hover:text-primary-hover 
 
 function count(n, singular, plural = `${singular}s`) {
     return `${n} ${n === 1 ? singular : plural}`;
-}
-
-function ApprovalBadge({ status }) {
-    // No badge while loading, on error, or when the backend sends no status.
-    if (!status) return null;
-
-    const approved = status === APPROVED_PROVIDER_STATUS;
-    return (
-        <span
-            className={`self-start rounded-full border px-3 py-1 text-xs font-semibold ${
-                approved
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-amber-200 bg-amber-50 text-amber-800"
-            }`}
-        >
-            {approved ? "Approved provider" : "Pending approval"}
-        </span>
-    );
 }
 
 function StatCard({ label, value, note }) {
@@ -154,7 +135,6 @@ export default function ProviderDashboardPage() {
     const [publishedService, setPublishedService] = useState(() => location.state?.publishedService ?? null);
     const [justPublishedId] = useState(() => location.state?.publishedService?.id ?? null);
 
-    const [providerStatus, setProviderStatus] = useState(null);
     const [servicesResult, setServicesResult] = useState({ status: "loading", services: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
 
@@ -163,20 +143,6 @@ export default function ProviderDashboardPage() {
             navigate(location.pathname, { replace: true, state: null });
         }
     }, [location.pathname, location.state, navigate]);
-
-    useEffect(() => {
-        let cancelled = false;
-        getMyProviderStatus()
-            .then((status) => {
-                if (!cancelled) setProviderStatus(status);
-            })
-            .catch(() => {
-                // The badge is optional; leave it out rather than show an error.
-            });
-        return () => {
-            cancelled = true;
-        };
-    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -218,7 +184,6 @@ export default function ProviderDashboardPage() {
 
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div className="flex flex-col gap-2.5">
-                    <ApprovalBadge status={providerStatus} />
                     <h1 className="text-[28px] text-text-main">
                         Welcome back{user?.firstname ? `, ${user.firstname}` : ""}
                     </h1>

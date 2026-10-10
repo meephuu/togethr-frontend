@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * A profile the account holds. PROVIDER applies regardless of approval status.
+ * A profile the account holds.
  */
 export enum UserRole {
     CUSTOMER = 'CUSTOMER',
