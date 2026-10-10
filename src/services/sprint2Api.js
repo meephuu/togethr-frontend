@@ -111,3 +111,17 @@ export async function createService(values) {
         },
     });
 }
+
+/**
+ * Searches for services.
+ * @param {URLSearchParams} searchParams
+ * @returns {Promise<{ data: Service[], meta: { totalCount, currentPage, totalPages, limit } }>}
+ */
+export async function searchServices(searchParams) {
+    if (USE_MOCKS) return mocks.searchServices(searchParams);
+    return request(OpenAPI, {
+        method: "GET",
+        url: "/services/search",
+        query: Object.fromEntries(searchParams.entries())
+    });
+}

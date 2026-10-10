@@ -3,7 +3,6 @@ import Button from "../ui/Button";
 import {
     EMPTY_FILTERS,
     GENDER_OPTIONS,
-    INTEREST_OPTIONS,
     RATING_OPTIONS,
     validateRanges,
 } from "../../lib/searchFilters";
@@ -61,7 +60,7 @@ function RangeInputs({ label, minName, maxName, minLabel, maxLabel, values, onCh
  * Give it key={key from useSearchFilters} so the draft resets whenever the
  * applied filters change (chip removed, back/forward, reload).
  */
-export default function FilterPanel({ filters, onApply, onClearAll }) {
+export default function FilterPanel({ filters, categories = [], onApply, onClearAll }) {
     const [draft, setDraft] = useState(filters);
     const errors = validateRanges(draft);
     const hasErrors = Object.keys(errors).length > 0;
@@ -150,21 +149,21 @@ export default function FilterPanel({ filters, onApply, onClearAll }) {
                 <fieldset className="m-0 border-0 p-0">
                     <legend className={LEGEND_CLASS}>Interests</legend>
                     <div className="flex flex-wrap gap-2">
-                        {INTEREST_OPTIONS.map((option) => {
-                            const selected = draft.interests.includes(option.value);
+                        {categories.map((category) => {
+                            const selected = draft.interests.includes(category);
                             return (
                                 <button
-                                    key={option.value}
+                                    key={category}
                                     type="button"
                                     aria-pressed={selected}
-                                    onClick={() => toggleInterest(option.value)}
+                                    onClick={() => toggleInterest(category)}
                                     className={`h-[34px] rounded-full border px-3.5 text-[13px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                                         selected
                                             ? "border-primary bg-primary text-white hover:bg-primary-hover"
                                             : "border-gray-200 bg-white text-text-main hover:border-gray-300 hover:bg-gray-50"
                                     }`}
                                 >
-                                    {option.label}
+                                    {category}
                                 </button>
                             );
                         })}

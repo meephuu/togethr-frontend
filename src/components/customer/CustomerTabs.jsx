@@ -11,7 +11,7 @@ export default function CustomerTabs() {
 
     const tabs = [
         { label: "Home", to: "/customer/dashboard", paths: ["/customer/dashboard"] },
-        { label: "Find Service" },
+        { label: "Find Service", to: "/search", paths: ["/search"] },
         { label: "My Booking" },
         {
             label: hasRole(user, "PROVIDER") ? "Switch to Provider Dashboard" : "Become a Provider",

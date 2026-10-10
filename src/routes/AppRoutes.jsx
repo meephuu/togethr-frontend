@@ -17,6 +17,7 @@ import MyServicesPage from "../pages/provider/MyServicesPage";
 import ServiceDetailPage from "../pages/public/ServiceDetailPage";
 import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
 import { USE_MOCKS } from "../services/sprint2Api";
+import FindServicePage from "../pages/public/FindServicePage";
 
 // ==========================================
 // Temp Pages Import
@@ -35,6 +36,7 @@ export default function AppRoutes() {
             <Routes>
                 {/* public */}
                 <Route path="/" element={<Home />} />
+                <Route path="/search" element={<FindServicePage />} />
                 <Route path="/sign-up" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route
