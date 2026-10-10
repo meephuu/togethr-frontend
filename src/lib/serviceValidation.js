@@ -1,15 +1,14 @@
 // Client-side rules for the create-service form (US4-1). The server repeats
 // them, so 400 responses are mapped back onto the same messages.
 
+import { IMAGE_ACCEPT, checkImageFile } from "./imageFile";
+
 export const TITLE_MAX_LENGTH = 150;
 export const LOCATION_MAX_LENGTH = 200;
-export const COVER_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
-export const COVER_PHOTO_ACCEPT = "image/jpeg,image/png";
+export const COVER_PHOTO_ACCEPT = IMAGE_ACCEPT;
 
 export const SERVICE_ERRORS = {
     coverPhoto: "Add a cover photo",
-    coverPhotoType: "Use a JPG or PNG file",
-    coverPhotoSize: "Photo must be 5 MB or smaller",
     title: "Service title is required",
     location: "Meeting area is required",
     rate: "Rate must be more than 0",
@@ -32,20 +31,8 @@ export const SERVICE_FORM_FIELDS = [
     "endTime",
 ];
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png"];
-
-// Some systems report an empty MIME type, so fall back to the extension.
-function isJpegOrPng(file) {
-    if (file.type) return ALLOWED_TYPES.includes(file.type);
-    return /\.(jpe?g|png)$/i.test(file.name);
-}
-
 /** Returns an error message for a picked cover photo, or null if it's usable. */
-export function checkCoverPhotoFile(file) {
-    if (!isJpegOrPng(file)) return SERVICE_ERRORS.coverPhotoType;
-    if (file.size > COVER_PHOTO_MAX_BYTES) return SERVICE_ERRORS.coverPhotoSize;
-    return null;
-}
+export const checkCoverPhotoFile = checkImageFile;
 
 // "HH:MM" strings compare correctly as text.
 function isEndAfterStart(startTime, endTime) {

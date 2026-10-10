@@ -195,6 +195,62 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /users/me/photo:
+    put:
+      tags: [Users]
+      operationId: uploadMyPhoto
+      summary: Set or replace the signed-in user's profile photo
+      description: Customers and providers alike. JPG or PNG, at most 5 MB. The previous photo is deleted.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [photo]
+              properties:
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Photo saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfilePhotoResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Users]
+      operationId: deleteMyPhoto
+      summary: Remove the signed-in user's profile photo
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Photo removed (profilePhotoUrl is null)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfilePhotoResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /users/{id}:
     get:
       tags: [Users]
@@ -385,6 +441,11 @@ components:
           type: string
         lastname:
           type: string
+        profilePhotoUrl:
+          type: string
+          nullable: true
+          description: Path on the API server, e.g. /uploads/profile-photos/abc.jpg (null when none).
+          example: /uploads/profile-photos/3f2b-1728540000000-12345.jpg
 
     RegisteredUser:
       allOf:
@@ -599,6 +660,14 @@ components:
               allOf:
                 - $ref: "#/components/schemas/PublicProviderProfile"
               nullable: true
+
+    ProfilePhotoResponse:
+      type: object
+      required: [profilePhotoUrl]
+      properties:
+        profilePhotoUrl:
+          type: string
+          nullable: true
 
     PublicProfileResponse:
       type: object

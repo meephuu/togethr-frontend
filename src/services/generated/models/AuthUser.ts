@@ -8,5 +8,9 @@ export type AuthUser = {
     email: string | null;
     firstname: string;
     lastname: string;
+    /**
+     * Path on the API server, e.g. /uploads/profile-photos/abc.jpg (null when none).
+     */
+    profilePhotoUrl?: string | null;
 };
 

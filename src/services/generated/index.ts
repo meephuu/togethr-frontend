@@ -16,6 +16,7 @@ export { Gender } from './models/Gender';
 export type { LoginRequest } from './models/LoginRequest';
 export type { LoginResponse } from './models/LoginResponse';
 export type { LogoutResponse } from './models/LogoutResponse';
+export type { ProfilePhotoResponse } from './models/ProfilePhotoResponse';
 export type { ProfileResponse } from './models/ProfileResponse';
 export type { ProviderProfile } from './models/ProviderProfile';
 export type { ProviderRegistrationDetails } from './models/ProviderRegistrationDetails';
