@@ -147,7 +147,7 @@ export default function FilterPanel({ filters, categories = [], onApply, onClear
                 />
 
                 <fieldset className="m-0 border-0 p-0">
-                    <legend className={LEGEND_CLASS}>Interests</legend>
+                    <legend className={LEGEND_CLASS}>Category</legend>
                     <div className="flex flex-wrap gap-2">
                         {categories.map((category) => {
                             const selected = draft.interests.includes(category);

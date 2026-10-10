@@ -35,7 +35,12 @@ export default function FindServicePage() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setStatus("loading");
         
-        searchServices(searchParams)
+        const apiParams = new URLSearchParams(searchParams);
+        if (!apiParams.has("limit")) {
+            apiParams.set("limit", "6");
+        }
+
+        searchServices(apiParams)
             .then((res) => {
                 if (!cancelled) {
                     setResults(res);

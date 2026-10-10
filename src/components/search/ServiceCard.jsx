@@ -12,7 +12,7 @@ export default function ServiceCard({ service }) {
     return (
         <Link
             to={`/services/${service.id}`}
-            className="flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
             <div className="aspect-[3/2] w-full overflow-hidden bg-gray-100">
                 <img

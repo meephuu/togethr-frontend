@@ -55,7 +55,8 @@ export const APPROVED_PROVIDER_STATUS = "APPROVED";
  */
 export async function getCategories() {
     if (USE_MOCKS) return mocks.getCategories();
-    const rows = await request(OpenAPI, { method: "GET", url: "/categories" });
+    const res = await request(OpenAPI, { method: "GET", url: "/categories" });
+    const rows = res.categories || res;
     return rows.map((row) => ({ id: row.id, name: row.category ?? row.name }));
 }
 
