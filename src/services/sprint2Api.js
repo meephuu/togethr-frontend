@@ -1,5 +1,5 @@
-// Every Sprint 2 call the provider pages make, in one place. The endpoints aren't
-// built yet and the contracts below are proposals to confirm with the team.
+// Every Sprint 2 call the service, search and provider pages make, in one
+// place (the endpoints are in the backend's integration/sprint2 branch).
 // Set VITE_USE_MOCKS=true to use sprint2Mocks.js instead of the backend.
 //
 // Errors: an HTTP error rejects with ApiError (check `.status` and `.body`);
@@ -45,8 +45,8 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
  */
 
 /**
- * Service categories for the create-service chips.
- * Proposed: GET /api/categories → [{ id, category }] (the Prisma column name).
+ * Service categories for the create-service chips and the search filter.
+ * GET /api/categories → { categories: [{ id, category }] }
  * @returns {Promise<Category[]>}
  */
 export async function getCategories() {
@@ -59,8 +59,8 @@ export async function getCategories() {
 /**
  * The signed-in provider's services, published and unpublished, for My services
  * (US4-4). No pagination: a provider rarely has more than a handful.
- * Proposed: GET /api/providers/me/services → Service[] (an empty array, not an
- * error, when the provider has none). Field names to confirm with Mee.
+ * GET /api/providers/me/services → Service[] (an empty array, not an
+ * error, when the provider has none).
  * @returns {Promise<Service[]>}
  */
 export async function getMyServices() {
@@ -69,30 +69,45 @@ export async function getMyServices() {
 }
 
 /**
- * Publishes a service.
- * Proposed: POST /api/services as multipart/form-data. categoryIds is sent as a
- * repeated `categoryIds` field.
+ * Publishes a service, in two steps:
+ * 1. POST /api/upload (multipart, field "image") stores the cover photo and
+ *    returns { url }
+ * 2. POST /api/services (JSON) with that url as coverPhotoUrl, plus title,
+ *    description, location, rate, rateUnit, startTime, endTime, categoryIds
  * - 201 { service }
- * - 400 { errors: { field: message } }
+ * - 400 { error, errors: { field: message } }
  * - 403 when the account has no provider profile
+ * If step 2 fails, the uploaded photo stays on the server unused.
  * @param {NewService} values
  * @returns {Promise<{ service: Service }>}
  */
 export async function createService(values) {
     if (USE_MOCKS) return mocks.createService(values);
+
+    let coverPhotoUrl = null;
+    if (values.coverPhoto) {
+        const upload = await request(OpenAPI, {
+            method: "POST",
+            url: "/upload",
+            formData: { image: values.coverPhoto },
+        });
+        coverPhotoUrl = upload.url;
+    }
+
     return request(OpenAPI, {
         method: "POST",
         url: "/services",
-        formData: {
+        mediaType: "application/json",
+        body: {
             title: values.title,
             description: values.description,
             location: values.location,
-            rate: String(values.rate),
+            rate: Number(values.rate),
             rateUnit: values.rateUnit,
             startTime: values.startTime,
             endTime: values.endTime,
             categoryIds: values.categoryIds,
-            coverPhoto: values.coverPhoto,
+            coverPhotoUrl,
         },
     });
 }
