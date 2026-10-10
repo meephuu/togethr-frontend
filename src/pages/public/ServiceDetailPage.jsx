@@ -5,33 +5,6 @@ import CustomerTabs from "../../components/customer/CustomerTabs";
 import Button from "../../components/ui/Button";
 
 // ==========================================
-// Mock Data (Temporary)
-// ==========================================
-const TEMP_REVIEWS = [
-    {
-        id: "rev-1",
-        author: "Matty",
-        rating: 4.5,
-        comment: "We had an incredible evening exploring Yaowarat Road with Nina. Starting out at Wat Mangkon right at sunset set such a great atmosphere before diving into the busy street food scene. The food itself was phenomenal",
-        date: "October 3, 2026"
-    },
-    {
-        id: "rev-2",
-        author: "Nene",
-        rating: 4.0,
-        comment: "What really made this experience good was having a guide who is completely fluent in both Thai and English.",
-        date: "September 16, 2026"
-    },
-    {
-        id: "rev-3",
-        author: "Clara",
-        rating: 5.0,
-        comment: "It felt like walking around with a local friend who knows all the best spots. Highly recommend this to anyone visiting Bangkok!",
-        date: "September 20, 2026"
-    }
-];
-
-// ==========================================
 // Component
 // ==========================================
 export default function ServiceDetailPage() {
@@ -95,11 +68,16 @@ export default function ServiceDetailPage() {
     // Derived defaults if backend fields are missing
     const coverImage = service.coverPhotoUrl || "https://images.unsplash.com/photo-1582298538104-fe2e74cb07f2?q=80&w=2070&auto=format&fit=crop";
     const rateUnit = service.rateUnit || "hour";
-    const avgRating = service.provider.avgRating ? Number(service.provider.avgRating).toFixed(1) : "New";
+    const reviews = service.reviews || [];
+    const reviewCount = service.reviewCount || reviews.length;
     
-    // Use real reviews if available, otherwise fallback to TEMP_REVIEWS
-    const reviews = service.reviews && service.reviews.length > 0 ? service.reviews : TEMP_REVIEWS;
-    const reviewCount = service.reviewCount > 0 ? service.reviewCount : TEMP_REVIEWS.length;
+    let avgRating = "New";
+    if (reviews.length > 0) {
+        const total = reviews.reduce((sum, rev) => sum + Number(rev.rating), 0);
+        avgRating = (total / reviews.length).toFixed(1);
+    } else if (service.provider.avgRating) {
+        avgRating = Number(service.provider.avgRating).toFixed(1);
+    }
 
     const providerAvatar = null; // No avatar currently from backend
     const startTime = service.startTime ? service.startTime.slice(0, 5) : "";
@@ -183,32 +161,38 @@ export default function ServiceDetailPage() {
                     {/* Reviews */}
                     <div className="mt-8">
                         <h2 className="text-2xl font-bold text-text-main mb-6">Customer Reviews</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {reviews.map(review => (
-                                <div key={review.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4 h-full">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 overflow-hidden">
-                                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        {reviews.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {reviews.map(review => (
+                                    <div key={review.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-4 h-full">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 overflow-hidden">
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                                </div>
+                                                <span className="font-medium text-text-main text-sm">{review.author}</span>
                                             </div>
-                                            <span className="font-medium text-text-main text-sm">{review.author}</span>
+                                            <div className="flex items-center gap-1">
+                                                <svg className="w-4 h-4 text-[#E7711B]" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                                <span className="font-bold text-sm text-text-main">{Number(review.rating).toFixed(1)}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <svg className="w-4 h-4 text-[#E7711B]" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                            <span className="font-bold text-sm text-text-main">{Number(review.rating).toFixed(1)}</span>
-                                        </div>
+                                        <p className="text-text-muted text-sm leading-relaxed flex-1">
+                                            {review.comment}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-2">
+                                            Posted {new Date(review.date || review.timestamp).toLocaleDateString()}
+                                        </p>
                                     </div>
-                                    <p className="text-text-muted text-sm leading-relaxed flex-1">
-                                        {review.comment}
-                                    </p>
-                                    <p className="text-xs text-gray-400 mt-2">
-                                        Posted {new Date(review.date || review.timestamp).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-text-muted">
+                                This service has not yet been reviewed.
+                            </div>
+                        )}
                     </div>
                 </div>
 
