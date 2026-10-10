@@ -20,6 +20,14 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    search: {
+        label: "Search results",
+        options: {
+            results: "Matching services",
+            empty: "No results",
+            network: "Network error",
+        },
+    },
     myServices: {
         label: "My services",
         options: {

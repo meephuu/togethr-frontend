@@ -4,6 +4,7 @@ import PageShell from "../../components/ui/PageShell";
 import CustomerTabs from "../../components/customer/CustomerTabs";
 import Button from "../../components/ui/Button";
 import { assetUrl } from "../../lib/assets";
+import { ApiError, getServiceById } from "../../services/sprint2Api";
 
 // ==========================================
 // Component
@@ -11,36 +12,34 @@ import { assetUrl } from "../../lib/assets";
 export default function ServiceDetailPage() {
     const { id } = useParams();
     
-    const [service, setService] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    // Which id the current result belongs to; a different id means loading.
+    const [result, setResult] = useState({ id: null, service: null, error: null });
+    const loading = result.id !== id;
+    const { service, error } = result;
 
     // Form states for booking
     const [selectedStartTime, setSelectedStartTime] = useState("");
     const [selectedEndTime, setSelectedEndTime] = useState("");
 
     useEffect(() => {
-        setLoading(true);
-        setError(null);
-        fetch(`http://localhost:8081/api/services/${id}`)
-            .then(res => {
-                if (!res.ok) {
-                    if (res.status === 404) throw new Error("Service not found.");
-                    if (res.status === 410) throw new Error("This service is no longer available.");
-                    throw new Error("Failed to load service details.");
-                }
-                return res.json();
+        let cancelled = false;
+        getServiceById(id)
+            .then((loaded) => {
+                if (cancelled) return;
+                setResult({ id, service: loaded, error: null });
+                if (loaded.startTime) setSelectedStartTime(loaded.startTime.slice(0, 5));
+                if (loaded.endTime) setSelectedEndTime(loaded.endTime.slice(0, 5));
             })
-            .then(data => {
-                setService(data.service);
-                if (data.service.startTime) setSelectedStartTime(data.service.startTime.slice(0, 5));
-                if (data.service.endTime) setSelectedEndTime(data.service.endTime.slice(0, 5));
-                setLoading(false);
-            })
-            .catch(err => {
-                setError(err.message);
-                setLoading(false);
+            .catch((err) => {
+                if (cancelled) return;
+                let message = "Failed to load service details.";
+                if (err instanceof ApiError && err.status === 404) message = "Service not found.";
+                if (err instanceof ApiError && err.status === 410) message = "This service is no longer available.";
+                setResult({ id, service: null, error: message });
             });
+        return () => {
+            cancelled = true;
+        };
     }, [id]);
 
     if (loading) {
@@ -58,7 +57,7 @@ export default function ServiceDetailPage() {
             <PageShell subnav={<CustomerTabs />}>
                 <div className="flex flex-col gap-4 justify-center items-center h-[50vh] text-center">
                     <p className="text-xl font-medium text-text-main">{error}</p>
-                    <Button variant="outline" onClick={() => window.history.back()}>Go Back</Button>
+                    <Button variant="secondary" onClick={() => window.history.back()}>Go Back</Button>
                 </div>
             </PageShell>
         );
@@ -67,7 +66,7 @@ export default function ServiceDetailPage() {
     if (!service) return null;
 
     // Derived defaults if backend fields are missing
-    const coverImage = service.coverPhotoUrl || "https://images.unsplash.com/photo-1582298538104-fe2e74cb07f2?q=80&w=2070&auto=format&fit=crop";
+    const coverImage = assetUrl(service.coverPhotoUrl) || "https://images.unsplash.com/photo-1582298538104-fe2e74cb07f2?q=80&w=2070&auto=format&fit=crop";
     const rateUnit = service.rateUnit || "hour";
     const reviews = service.reviews || [];
     const reviewCount = service.reviewCount || reviews.length;

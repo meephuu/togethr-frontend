@@ -91,7 +91,9 @@ const SERVER_MESSAGE_OVERRIDES = {
  */
 export function mapServerErrors(apiErrors) {
     const mapped = {};
-    for (const [field, message] of Object.entries(apiErrors ?? {})) {
+    for (const [apiField, message] of Object.entries(apiErrors ?? {})) {
+        // The API names the photo by its stored URL; the form by the file.
+        const field = apiField === "coverPhotoUrl" ? "coverPhoto" : apiField;
         if (!SERVICE_FORM_FIELDS.includes(field)) continue;
         mapped[field] = SERVER_MESSAGE_OVERRIDES[field] ?? String(message);
     }

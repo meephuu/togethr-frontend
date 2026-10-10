@@ -1,5 +1,5 @@
-// Every Sprint 2 call the provider pages make, in one place. The endpoints aren't
-// built yet and the contracts below are proposals to confirm with the team.
+// Every Sprint 2 call the service, search and provider pages make, in one
+// place (the endpoints are in the backend's integration/sprint2 branch).
 // Set VITE_USE_MOCKS=true to use sprint2Mocks.js instead of the backend.
 //
 // Errors: an HTTP error rejects with ApiError (check `.status` and `.body`);
@@ -45,21 +45,22 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
  */
 
 /**
- * Service categories for the create-service chips.
- * Proposed: GET /api/categories → [{ id, category }] (the Prisma column name).
+ * Service categories for the create-service chips and the search filter.
+ * GET /api/categories → { categories: [{ id, category }] }
  * @returns {Promise<Category[]>}
  */
 export async function getCategories() {
     if (USE_MOCKS) return mocks.getCategories();
-    const rows = await request(OpenAPI, { method: "GET", url: "/categories" });
+    const res = await request(OpenAPI, { method: "GET", url: "/categories" });
+    const rows = res.categories || res;
     return rows.map((row) => ({ id: row.id, name: row.category ?? row.name }));
 }
 
 /**
  * The signed-in provider's services, published and unpublished, for My services
  * (US4-4). No pagination: a provider rarely has more than a handful.
- * Proposed: GET /api/providers/me/services → Service[] (an empty array, not an
- * error, when the provider has none). Field names to confirm with Mee.
+ * GET /api/providers/me/services → Service[] (an empty array, not an
+ * error, when the provider has none).
  * @returns {Promise<Service[]>}
  */
 export async function getMyServices() {
@@ -68,30 +69,75 @@ export async function getMyServices() {
 }
 
 /**
- * Publishes a service.
- * Proposed: POST /api/services as multipart/form-data. categoryIds is sent as a
- * repeated `categoryIds` field.
+ * Publishes a service, in two steps:
+ * 1. POST /api/upload (multipart, field "image") stores the cover photo and
+ *    returns { url }
+ * 2. POST /api/services (JSON) with that url as coverPhotoUrl, plus title,
+ *    description, location, rate, rateUnit, startTime, endTime, categoryIds
  * - 201 { service }
- * - 400 { errors: { field: message } }
+ * - 400 { error, errors: { field: message } }
  * - 403 when the account has no provider profile
+ * If step 2 fails, the uploaded photo stays on the server unused.
  * @param {NewService} values
  * @returns {Promise<{ service: Service }>}
  */
 export async function createService(values) {
     if (USE_MOCKS) return mocks.createService(values);
+
+    let coverPhotoUrl = null;
+    if (values.coverPhoto) {
+        const upload = await request(OpenAPI, {
+            method: "POST",
+            url: "/upload",
+            formData: { image: values.coverPhoto },
+        });
+        coverPhotoUrl = upload.url;
+    }
+
     return request(OpenAPI, {
         method: "POST",
         url: "/services",
-        formData: {
+        mediaType: "application/json",
+        body: {
             title: values.title,
             description: values.description,
             location: values.location,
-            rate: String(values.rate),
+            rate: Number(values.rate),
             rateUnit: values.rateUnit,
             startTime: values.startTime,
             endTime: values.endTime,
             categoryIds: values.categoryIds,
-            coverPhoto: values.coverPhoto,
+            coverPhotoUrl,
         },
     });
+}
+
+/**
+ * Searches published services. Pass the page's URL query as is: q, gender
+ * (M|F|O), minAge, maxAge, interests (comma-separated category names),
+ * minPrice, maxPrice, minRating, sortBy, page, limit.
+ * GET /api/services/search
+ * @param {URLSearchParams} searchParams
+ * @returns {Promise<{ data: Service[], meta: { totalCount, currentPage, totalPages, limit } }>}
+ */
+export async function searchServices(searchParams) {
+    if (USE_MOCKS) return mocks.searchServices(searchParams);
+    return request(OpenAPI, {
+        method: "GET",
+        url: "/services/search",
+        query: Object.fromEntries(searchParams.entries())
+    });
+}
+
+/**
+ * One service for the detail page (US5-3), with categories, reviews and the
+ * provider. GET /api/services/:id
+ * - 404 when it doesn't exist; 410 when the provider unpublished it
+ * @param {string} id
+ * @returns {Promise<Object>} the service
+ */
+export async function getServiceById(id) {
+    if (USE_MOCKS) return mocks.getServiceById(id);
+    const { service } = await request(OpenAPI, { method: "GET", url: "/services/{id}", path: { id } });
+    return service;
 }

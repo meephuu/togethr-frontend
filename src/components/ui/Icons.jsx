@@ -94,3 +94,26 @@ export const PlusIcon = (props) => (
         <path d="M5 12h14" />
     </Svg>
 );
+
+export const StarFilledIcon = ({ size = 20, className = "" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        stroke="none"
+        aria-hidden="true"
+        className={`shrink-0 ${className}`}
+    >
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+);
+
+export const UserIcon = (props) => (
+    <Svg {...props}>
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+    </Svg>
+);
+
