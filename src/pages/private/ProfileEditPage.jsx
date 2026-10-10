@@ -4,6 +4,7 @@ import Navbar from "../../components/ui/Navbar";
 import Footer from "../../components/ui/Footer";
 import Button from "../../components/ui/Button";
 import ChipSelect from "../../components/ui/ChipSelect";
+import ProfilePhotoField from "../../components/profile/ProfilePhotoField";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, UsersService } from "../../services/generated";
 import {
@@ -49,6 +50,7 @@ export default function ProfileEditPage() {
     const [apiError, setApiError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState("");
+    const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -79,6 +81,12 @@ export default function ProfileEditPage() {
                     serviceArea: toArray(profile.provider?.serviceArea),
                 });
                 setIsProvider(!!profile.provider);
+                setProfilePhotoUrl(profile.profilePhotoUrl ?? null);
+                // Sessions saved before profile photos existed have no
+                // profilePhotoUrl; bring the Navbar's copy up to date.
+                if (user && (user.profilePhotoUrl ?? null) !== (profile.profilePhotoUrl ?? null)) {
+                    setUser({ ...user, profilePhotoUrl: profile.profilePhotoUrl ?? null });
+                }
             })
             .catch(() => {
                 if (!cancelled) setLoadError("Could not load your profile. Please try again.");
@@ -183,6 +191,16 @@ export default function ProfileEditPage() {
                 ) : loadError ? (
                     <p className="text-red-600">{loadError}</p>
                 ) : (
+                    <>
+                    <ProfilePhotoField
+                        photoUrl={profilePhotoUrl}
+                        firstname={formData.firstname}
+                        lastname={formData.lastname}
+                        onChange={(url) => {
+                            setProfilePhotoUrl(url);
+                            setUser({ ...user, profilePhotoUrl: url });
+                        }}
+                    />
                     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                         <div className="flex gap-3">
                             <div className="flex-1">
@@ -377,6 +395,7 @@ export default function ProfileEditPage() {
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </Button>
                     </form>
+                    </>
                 )}
             </div>
 

@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { AddProviderProfileRequest } from '../models/AddProviderProfileRequest';
 import type { LoginResponse } from '../models/LoginResponse';
+import type { ProfilePhotoResponse } from '../models/ProfilePhotoResponse';
 import type { ProfileResponse } from '../models/ProfileResponse';
 import type { PublicProfileResponse } from '../models/PublicProfileResponse';
 import type { UpdateProfileRequest } from '../models/UpdateProfileRequest';
@@ -72,6 +73,48 @@ export class UsersService {
                 401: `Authentication failed or is required`,
                 404: `Resource not found`,
                 409: `Resource already exists`,
+                500: `Unexpected server error`,
+            },
+        });
+    }
+    /**
+     * Set or replace the signed-in user's profile photo
+     * Customers and providers alike. JPG or PNG, at most 5 MB. The previous photo is deleted.
+     * @returns ProfilePhotoResponse Photo saved
+     * @throws ApiError
+     */
+    public static uploadMyPhoto({
+        formData,
+    }: {
+        formData: {
+            photo: Blob;
+        },
+    }): CancelablePromise<ProfilePhotoResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/users/me/photo',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                400: `Invalid request`,
+                401: `Authentication failed or is required`,
+                404: `Resource not found`,
+                500: `Unexpected server error`,
+            },
+        });
+    }
+    /**
+     * Remove the signed-in user's profile photo
+     * @returns ProfilePhotoResponse Photo removed (profilePhotoUrl is null)
+     * @throws ApiError
+     */
+    public static deleteMyPhoto(): CancelablePromise<ProfilePhotoResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/users/me/photo',
+            errors: {
+                401: `Authentication failed or is required`,
+                404: `Resource not found`,
                 500: `Unexpected server error`,
             },
         });

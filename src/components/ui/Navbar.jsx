@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Button from "./Button";
+import Avatar from "./Avatar";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthService } from "../../services/generated";
 import { dashboardFor } from "../../lib/roles";
@@ -43,7 +44,13 @@ const Navbar = ({ children }) => {
                     <div className="flex gap-4 items-center">
                         {isAuthenticated ? (
                             <>
-                                <span className="text-text-muted text-sm">
+                                <span className="flex items-center gap-2 text-text-muted text-sm">
+                                    <Avatar
+                                        photoUrl={user?.profilePhotoUrl}
+                                        firstname={user?.firstname || user?.username}
+                                        lastname={user?.lastname}
+                                        size="sm"
+                                    />
                                     Hi, {user?.firstname || user?.username}
                                 </span>
                                 <Button

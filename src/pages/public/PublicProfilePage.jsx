@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "../../components/ui/Navbar";
 import Footer from "../../components/ui/Footer";
+import Avatar from "../../components/ui/Avatar";
 import { ApiError, UsersService } from "../../services/generated";
 import { interestLabel, toArray } from "../../lib/providerOptions";
 
@@ -67,11 +68,19 @@ export default function PublicProfilePage() {
                 {!isLoading && !error && profile && (
                     <div className="bg-background rounded-2xl shadow-sm border border-gray-100 p-8">
                         <div className="flex items-center justify-between mb-6">
-                            <div>
-                                <h1 className="text-2xl font-bold text-text-main">
-                                    {profile.firstname} {profile.lastname}
-                                </h1>
-                                <p className="text-text-muted">@{profile.username}</p>
+                            <div className="flex items-center gap-4">
+                                <Avatar
+                                    photoUrl={profile.profilePhotoUrl}
+                                    firstname={profile.firstname}
+                                    lastname={profile.lastname}
+                                    size="lg"
+                                />
+                                <div>
+                                    <h1 className="text-2xl font-bold text-text-main">
+                                        {profile.firstname} {profile.lastname}
+                                    </h1>
+                                    <p className="text-text-muted">@{profile.username}</p>
+                                </div>
                             </div>
                             {profile.provider && (
                                 <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">

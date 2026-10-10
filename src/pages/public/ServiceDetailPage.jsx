@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import CustomerTabs from "../../components/customer/CustomerTabs";
 import Button from "../../components/ui/Button";
+import { assetUrl } from "../../lib/assets";
 
 // ==========================================
 // Component
@@ -79,7 +80,7 @@ export default function ServiceDetailPage() {
         avgRating = Number(service.provider.avgRating).toFixed(1);
     }
 
-    const providerAvatar = null; // No avatar currently from backend
+    const providerAvatar = assetUrl(service.provider.profilePhotoUrl);
     const startTime = service.startTime ? service.startTime.slice(0, 5) : "";
     const endTime = service.endTime ? service.endTime.slice(0, 5) : "";
     const categories = service.categories || [];
