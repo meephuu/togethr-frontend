@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { AuthService } from "../../services/generated";
 import { dashboardFor } from "../../lib/roles";
 import logo from "../../assets/temp-logo-black.png";
+import NotificationBell from './NotificationBell'
 
 // children: an optional second row inside the sticky nav, e.g. ProviderTabs.
 const Navbar = ({ children }) => {
@@ -53,6 +54,7 @@ const Navbar = ({ children }) => {
                                     />
                                     Hi, {user?.firstname || user?.username}
                                 </span>
+                                <NotificationBell /> 
                                 <Button
                                     onClick={() => navigate("/profile/edit")}
                                     variant="secondary"
