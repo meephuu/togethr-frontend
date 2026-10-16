@@ -141,3 +141,20 @@ export async function getServiceById(id) {
     const { service } = await request(OpenAPI, { method: "GET", url: "/services/{id}", path: { id } });
     return service;
 }
+/**
+ * ส่งคำขอจอง slot ของ service (US6-1)
+ * slot มาจาก getServiceById(id).availableSlots
+ * POST /api/bookings { serviceId, slotId }
+ * - 201 { booking } สถานะ "WAITING_FOR_CONFIRMATION"
+ * - 409 "This time slot is not available" ถ้ามีคนจองตัดหน้า หรือ provider ลบ slot ไปแล้ว
+ * - 403 ถ้าบัญชีไม่มี customer profile; 410 ถ้า service ถูก unpublish
+ * @param {{ serviceId: string, slotId: string }} values
+ */
+export async function createBooking({ serviceId, slotId }) {
+    return request(OpenAPI, {
+        method: "POST",
+        url: "/bookings",
+        mediaType: "application/json",
+        body: { serviceId, slotId },
+    });
+}
