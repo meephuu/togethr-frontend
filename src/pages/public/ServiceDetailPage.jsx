@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import CustomerTabs from "../../components/customer/CustomerTabs";
 import Button from "../../components/ui/Button";
+import BookingCard from "../../components/booking/BookingCard";
 import { assetUrl } from "../../lib/assets";
 import { ApiError, getServiceById } from "../../services/sprint2Api";
 
@@ -17,9 +18,7 @@ export default function ServiceDetailPage() {
     const loading = result.id !== id;
     const { service, error } = result;
 
-    // Form states for booking
-    const [selectedStartTime, setSelectedStartTime] = useState("");
-    const [selectedEndTime, setSelectedEndTime] = useState("");
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let cancelled = false;
@@ -27,8 +26,7 @@ export default function ServiceDetailPage() {
             .then((loaded) => {
                 if (cancelled) return;
                 setResult({ id, service: loaded, error: null });
-                if (loaded.startTime) setSelectedStartTime(loaded.startTime.slice(0, 5));
-                if (loaded.endTime) setSelectedEndTime(loaded.endTime.slice(0, 5));
+    
             })
             .catch((err) => {
                 if (cancelled) return;
@@ -40,7 +38,7 @@ export default function ServiceDetailPage() {
         return () => {
             cancelled = true;
         };
-    }, [id]);
+        }, [id, reloadKey]);
 
     if (loading) {
         return (
@@ -67,7 +65,6 @@ export default function ServiceDetailPage() {
 
     // Derived defaults if backend fields are missing
     const coverImage = assetUrl(service.coverPhotoUrl) || "https://images.unsplash.com/photo-1582298538104-fe2e74cb07f2?q=80&w=2070&auto=format&fit=crop";
-    const rateUnit = service.rateUnit || "hour";
     const reviews = service.reviews || [];
     const reviewCount = service.reviewCount || reviews.length;
     
@@ -80,21 +77,9 @@ export default function ServiceDetailPage() {
     }
 
     const providerAvatar = assetUrl(service.provider.profilePhotoUrl);
-    const startTime = service.startTime ? service.startTime.slice(0, 5) : "";
-    const endTime = service.endTime ? service.endTime.slice(0, 5) : "";
     const categories = service.categories || [];
 
-    let finalPrice = service.rate;
-    if (rateUnit === "hour" && selectedStartTime && selectedEndTime) {
-        const [startH, startM] = selectedStartTime.split(':').map(Number);
-        const [endH, endM] = selectedEndTime.split(':').map(Number);
-        const diff = (endH + endM / 60) - (startH + startM / 60);
-        if (diff > 0) {
-            finalPrice = diff * service.rate;
-        } else {
-            finalPrice = 0;
-        }
-    }
+    
 
     return (
         <PageShell subnav={<CustomerTabs />}>
@@ -195,64 +180,10 @@ export default function ServiceDetailPage() {
                         )}
                     </div>
                 </div>
-
-                {/* Right Column: Booking Card */}
-                <div className="w-full lg:w-[350px] shrink-0 sticky top-24">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col gap-6">
-                        <div className="flex justify-between items-center">
-                            <span className="font-semibold text-text-main">Price</span>
-                            <span className="font-bold text-lg text-text-main">
-                                ฿{service.rate} <span className="font-normal text-sm text-text-muted">/ {rateUnit}</span>
-                            </span>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-semibold text-text-main">Service Date</label>
-                            <input 
-                                type="date" 
-                                onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                                className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main bg-white focus:outline-none focus:border-[#E7711B] focus:ring-1 focus:ring-[#E7711B]"
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-semibold text-text-main">Service Time</label>
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="time" 
-                                    value={selectedStartTime}
-                                    onChange={(e) => setSelectedStartTime(e.target.value)}
-                                    min={startTime}
-                                    max={endTime}
-                                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main bg-white focus:outline-none focus:border-[#E7711B] focus:ring-1 focus:ring-[#E7711B]"
-                                />
-                                <span className="text-gray-400">-</span>
-                                <input 
-                                    type="time" 
-                                    value={selectedEndTime}
-                                    onChange={(e) => setSelectedEndTime(e.target.value)}
-                                    min={startTime}
-                                    max={endTime}
-                                    onClick={(e) => e.target.showPicker && e.target.showPicker()}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-text-main bg-white focus:outline-none focus:border-[#E7711B] focus:ring-1 focus:ring-[#E7711B]"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                            <span className="font-semibold text-text-main">Final Price</span>
-                            <span className="font-bold text-xl text-text-main">
-                                ฿{Number(finalPrice).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
-                            </span>
-                        </div>
-
-                        <Button variant="primary" disabled className="w-full h-12 text-[15px]">
-                            Book This Service
-                        </Button>
-                    </div>
+                {/* Right Column: Booking Card (US6-1) */}
+                <div className="w-full lg:w-[350px] shrink-0 lg:sticky lg:top-24">
+                    <BookingCard service={service} onSlotsChanged={() => setReloadKey((key) => key + 1)} />
                 </div>
-
             </div>
         </PageShell>
     );
