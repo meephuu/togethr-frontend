@@ -307,3 +307,91 @@ export async function getServiceById(id) {
         reviews: [],
     };
 }
+
+// ---------------------------------------------------------------------------
+// Booking requests (US6-2). Decisions made through the mock stick until reload.
+// ---------------------------------------------------------------------------
+
+const HOUR_MS = 60 * 60 * 1000;
+
+function mockDateFromToday(offset) {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function mockRequest(id, status, hoursAgo, fields) {
+    const createdAt = new Date(Date.now() - hoursAgo * HOUR_MS);
+    return {
+        id,
+        bookingStatus: status,
+        createdAt: createdAt.toISOString(),
+        respondBy:
+            status === "WAITING_FOR_CONFIRMATION" ? new Date(createdAt.getTime() + 24 * HOUR_MS).toISOString() : null,
+        ...fields,
+    };
+}
+
+const OLD_TOWN = { id: "svc-old-town", title: "Old Town street food walk", location: "Bangkok – Yaowarat & Old Town" };
+const TEMPLE = { id: "svc-temple", title: "Temple morning photo walk", location: "Bangkok – Rattanakosin" };
+
+const bookingRequests = [
+    mockRequest("req-1", "WAITING_FOR_CONFIRMATION", 2, {
+        appointmentDate: mockDateFromToday(3), startTime: "09:00", endTime: "12:00", totalPrice: 1350,
+        service: OLD_TOWN, customer: { firstname: "Nina", lastname: "Park", profilePhotoUrl: null },
+    }),
+    mockRequest("req-2", "WAITING_FOR_CONFIRMATION", 21, {
+        appointmentDate: mockDateFromToday(2), startTime: "13:00", endTime: "16:00", totalPrice: 1800,
+        service: TEMPLE, customer: { firstname: "Tom", lastname: "Wong", profilePhotoUrl: null },
+    }),
+    mockRequest("req-3", "CONFIRMED", 30, {
+        appointmentDate: mockDateFromToday(5), startTime: "09:00", endTime: "11:00", totalPrice: 900,
+        service: OLD_TOWN, customer: { firstname: "Ploy", lastname: "Srisuk", profilePhotoUrl: null },
+    }),
+    mockRequest("req-4", "REJECTED", 50, {
+        appointmentDate: mockDateFromToday(1), startTime: "15:00", endTime: "17:00", totalPrice: 1200,
+        service: TEMPLE, customer: { firstname: "Ben", lastname: "Chan", profilePhotoUrl: null },
+    }),
+    mockRequest("req-5", "EXPIRED", 80, {
+        appointmentDate: mockDateFromToday(-1), startTime: null, endTime: null, totalPrice: null,
+        service: OLD_TOWN, customer: { firstname: "Mint", lastname: "J.", profilePhotoUrl: null },
+    }),
+];
+
+export async function getBookingRequests() {
+    await wait();
+    switch (getMockScenario("bookingRequests")) {
+        case "empty":
+            return [];
+        case "network":
+            throw networkError();
+        default:
+            return bookingRequests.map((item) => ({ ...item }));
+    }
+}
+
+export async function updateBookingStatus(bookingId, status) {
+    await wait(500);
+    const url = `/api/bookings/${bookingId}/status`;
+    const item = bookingRequests.find((candidate) => candidate.id === bookingId);
+    if (!item) throw httpError("PATCH", url, 404, "Not Found", { error: "Booking not found." });
+
+    switch (getMockScenario("bookingDecision")) {
+        case "expired":
+            item.bookingStatus = "EXPIRED";
+            item.respondBy = null;
+            throw httpError("PATCH", url, 409, "Conflict", { error: "This request has expired" });
+        case "network":
+            throw networkError();
+        default:
+    }
+    if (item.bookingStatus !== "WAITING_FOR_CONFIRMATION") {
+        throw httpError("PATCH", url, 409, "Conflict", {
+            error: "Only a booking waiting for confirmation can be confirmed or rejected.",
+        });
+    }
+    item.bookingStatus = status;
+    item.respondBy = null;
+    return { booking: { id: item.id, bookingStatus: status } };
+}

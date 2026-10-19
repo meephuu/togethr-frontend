@@ -214,11 +214,18 @@ export default function ProviderDashboardPage() {
                 <YourServices result={servicesResult} justPublishedId={justPublishedId} onRetry={retryServices} />
 
                 <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
-                    {/* Booking requests are US6-2; no endpoint is agreed yet. */}
+                    {/* Booking requests (US6-2) */}
                     <section className={`${CARD_CLASS} flex flex-col p-6`}>
-                        <CardHeader title="Booking requests" action={<ComingSoon className="text-sm font-semibold">See all</ComingSoon>} />
+                        <CardHeader
+                            title="Booking requests"
+                            action={
+                                <Link to="/provider/booking-requests" className={LINK_CLASS}>
+                                    See all
+                                </Link>
+                            }
+                        />
                         <p className="border-t border-gray-100 pt-3 text-sm text-text-muted">
-                            Booking requests from customers will appear here. Coming soon.
+                            Accept or reject requests from customers. A request expires if you don't answer within 24 hours.
                         </p>
                     </section>
                     <section className={`${CARD_CLASS} flex items-start gap-4 p-6`}>

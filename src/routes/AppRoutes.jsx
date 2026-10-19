@@ -13,6 +13,7 @@ import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
 import MyServicesPage from "../pages/provider/MyServicesPage";
+import BookingRequestsPage from "../pages/provider/BookingRequestsPage";
 import ServiceDetailPage from "../pages/public/ServiceDetailPage";
 import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
 import { USE_MOCKS } from "../services/sprint2Api";
@@ -68,6 +69,10 @@ export default function AppRoutes() {
                     <Route
                         path="/provider/services/new"
                         element={<CreateServicePage />}
+                    />
+                    <Route
+                        path="/provider/booking-requests"
+                        element={<BookingRequestsPage />}
                     />
                 </Route>
 

@@ -36,6 +36,22 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    bookingRequests: {
+        label: "Booking requests",
+        options: {
+            list: "Waiting, confirmed & past",
+            empty: "No requests",
+            network: "Network error",
+        },
+    },
+    bookingDecision: {
+        label: "Accept / reject",
+        options: {
+            success: "Success (200)",
+            expired: "Request expired (409)",
+            network: "Network error",
+        },
+    },
     availability: {
         label: "Availability",
         options: {
