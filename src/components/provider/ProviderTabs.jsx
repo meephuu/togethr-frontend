@@ -5,7 +5,7 @@ import { DASHBOARD_BY_ROLE, hasRole } from "../../lib/roles";
 const TAB_CLASS = "whitespace-nowrap border-b-2 py-3.5 text-sm";
 
 export default function ProviderTabs() {
-    const { pathname } = useLocation();
+    const { pathname, search } = useLocation();
     const { user } = useAuth();
     const current = pathname.replace(/\/+$/, "");
 
@@ -13,7 +13,7 @@ export default function ProviderTabs() {
         { label: "Dashboard", to: "/provider/dashboard", paths: ["/provider/dashboard", "/provider/services/new"] },
         { label: "My services", to: "/provider/services", paths: ["/provider/services"] },
         { label: "Booking requests", to: "/provider/booking-requests", paths: ["/provider/booking-requests"] },
-        { label: "Availability" },
+        { label: "Availability", to: "/provider/services?availability=1", paths: [] },
     ];
 
     if (hasRole(user, "CUSTOMER")) {
@@ -41,7 +41,12 @@ export default function ProviderTabs() {
                         );
                     }
 
-                    const active = tab.paths.includes(current);
+                    const availabilitySelected =
+                        current === "/provider/services" && new URLSearchParams(search).get("availability") === "1";
+                    const active =
+                        tab.label === "Availability"
+                            ? availabilitySelected
+                            : tab.paths.includes(current) && !(tab.label === "My services" && availabilitySelected);
                     return (
                         <Link
                             key={tab.label}

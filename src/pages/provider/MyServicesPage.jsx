@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
@@ -164,6 +164,7 @@ function EmptyState({ onCreate }) {
 
 export default function MyServicesPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [result, setResult] = useState({ status: "loading", services: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
     const [availabilityService, setAvailabilityService] = useState(null);
@@ -192,6 +193,7 @@ export default function MyServicesPage() {
     const goToCreate = () => navigate("/provider/services/new");
 
     const { status, services } = result;
+    const availabilityView = new URLSearchParams(location.search).get("availability") === "1";
     const isEmpty = status === "ready" && services.length === 0;
     const bookingsThisMonth = services.reduce((sum, service) => sum + (service.bookingsThisMonth ?? 0), 0);
 
@@ -208,8 +210,11 @@ export default function MyServicesPage() {
         <PageShell subnav={<ProviderTabs />}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div className="flex flex-col gap-2">
-                    <h1 className="text-[28px] text-text-main">My services</h1>
+                    <h1 className="text-[28px] text-text-main">{availabilityView ? "Availability" : "My services"}</h1>
                     {summary && <div className="text-text-muted">{summary}</div>}
+                    {availabilityView && (
+                        <p className="text-sm text-text-muted">Choose a service to manage its available dates and hours.</p>
+                    )}
                 </div>
                 {/* The empty state has its own button; one call to action is enough. */}
                 {(status === "error" || (status === "ready" && !isEmpty)) && (
