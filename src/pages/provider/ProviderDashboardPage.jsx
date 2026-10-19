@@ -235,8 +235,8 @@ export default function ProviderDashboardPage() {
                             <span className="text-sm leading-relaxed text-text-muted">
                                 Customers can only book the slots you make available.
                             </span>
-                            <Link to="/provider/services?availability=1" className={LINK_CLASS}>
-                                Go to Availability
+                            <Link to="/provider/services" className={LINK_CLASS}>
+                                Manage availability in My services →
                             </Link>
                         </div>
                     </section>

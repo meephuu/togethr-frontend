@@ -5,7 +5,7 @@ import { DASHBOARD_BY_ROLE, hasRole } from "../../lib/roles";
 const TAB_CLASS = "whitespace-nowrap border-b-2 py-3.5 text-sm";
 
 export default function ProviderTabs() {
-    const { pathname, search } = useLocation();
+    const { pathname } = useLocation();
     const { user } = useAuth();
     const current = pathname.replace(/\/+$/, "");
 
@@ -13,7 +13,6 @@ export default function ProviderTabs() {
         { label: "Dashboard", to: "/provider/dashboard", paths: ["/provider/dashboard", "/provider/services/new"] },
         { label: "My services", to: "/provider/services", paths: ["/provider/services"] },
         { label: "Booking requests", to: "/provider/booking-requests", paths: ["/provider/booking-requests"] },
-        { label: "Availability", to: "/provider/services?availability=1", paths: [] },
     ];
 
     if (hasRole(user, "CUSTOMER")) {
@@ -28,25 +27,7 @@ export default function ProviderTabs() {
         <nav aria-label="Provider sections" className="mx-auto max-w-7xl px-8">
             <div className="thin-scrollbar flex gap-8 overflow-x-auto border-t border-gray-100">
                 {tabs.map((tab) => {
-                    if (!tab.to) {
-                        return (
-                            <span
-                                key={tab.label}
-                                aria-disabled="true"
-                                title="Coming soon"
-                                className={`${TAB_CLASS} cursor-not-allowed border-transparent font-medium text-gray-400`}
-                            >
-                                {tab.label}
-                            </span>
-                        );
-                    }
-
-                    const availabilitySelected =
-                        current === "/provider/services" && new URLSearchParams(search).get("availability") === "1";
-                    const active =
-                        tab.label === "Availability"
-                            ? availabilitySelected
-                            : tab.paths.includes(current) && !(tab.label === "My services" && availabilitySelected);
+                    const active = tab.paths.includes(current);
                     return (
                         <Link
                             key={tab.label}
