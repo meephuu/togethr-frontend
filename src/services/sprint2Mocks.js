@@ -12,6 +12,52 @@ const DELAY_MS = 800;
 
 const wait = (ms = DELAY_MS) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const mockNotifications = [
+    {
+        id: "mock-notification-1",
+        bookingId: "mock-booking-1",
+        type: "BOOKING_CONFIRMED",
+        message: "Your booking for the city tour was confirmed.",
+        isRead: false,
+        createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    },
+    {
+        id: "mock-notification-2",
+        bookingId: "mock-booking-2",
+        type: "NEW_BOOKING_REQUEST",
+        message: "A customer requested \"Old Town street food walk\".",
+        isRead: false,
+        createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    },
+    {
+        id: "mock-notification-3",
+        bookingId: "mock-booking-3",
+        type: "BOOKING_CANCELLED",
+        message: "Your booking for the temple tour was cancelled.",
+        isRead: true,
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    },
+];
+
+export async function getMyNotifications() {
+    await wait();
+    return mockNotifications.map((notification) => ({ ...notification }));
+}
+
+export async function markNotificationRead(id) {
+    await wait(200);
+    const notification = mockNotifications.find((item) => item.id === id);
+    if (notification) notification.isRead = true;
+    return { notification: { id, isRead: true } };
+}
+
+export async function markAllNotificationsRead() {
+    await wait(200);
+    const unread = mockNotifications.filter((notification) => !notification.isRead);
+    unread.forEach((notification) => { notification.isRead = true; });
+    return { updatedCount: unread.length };
+}
+
 function httpError(method, url, status, statusText, body) {
     return new ApiError({ method, url }, { url, ok: false, status, statusText, body }, statusText);
 }

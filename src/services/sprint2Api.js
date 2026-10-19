@@ -14,6 +14,40 @@ export { ApiError };
 export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
 
 /**
+ * The signed-in user's notifications, newest first.
+ * GET /api/notifications → { notifications: Notification[] }
+ * @returns {Promise<Array<{ id: string, bookingId: string|null, type: string, message: string, isRead: boolean, createdAt: string }>>}
+ */
+export async function getMyNotifications() {
+    if (USE_MOCKS) return mocks.getMyNotifications();
+    const res = await request(OpenAPI, { method: "GET", url: "/notifications" });
+    return res.notifications;
+}
+
+/**
+ * Marks one of the signed-in user's notifications as read.
+ * PATCH /api/notifications/:id/read
+ * @param {string} id
+ */
+export async function markNotificationRead(id) {
+    if (USE_MOCKS) return mocks.markNotificationRead(id);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/notifications/{id}/read",
+        path: { id },
+    });
+}
+
+/**
+ * Marks all of the signed-in user's unread notifications as read.
+ * PATCH /api/notifications/read-all
+ */
+export async function markAllNotificationsRead() {
+    if (USE_MOCKS) return mocks.markAllNotificationsRead();
+    return request(OpenAPI, { method: "PATCH", url: "/notifications/read-all" });
+}
+
+/**
  * @typedef {Object} Category
  * @property {string} id
  * @property {string} name
