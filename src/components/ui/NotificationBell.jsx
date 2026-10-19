@@ -1,25 +1,69 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { hasRole } from "../../lib/roles";
+import {
+    getMyNotifications,
+    markAllNotificationsRead,
+    markNotificationRead,
+} from "../../services/sprint2Api";
 
-//Mock Notifications (to be implemented)
-const INITIAL_NOTIFICATIONS = [
-    { id: 1, message: "Your booking request was sent.", time: "5 min ago", read: false },
-    { id: 2, message: "Your booking for the city tour was confirmed.", time: "1 hour ago", read: false },
-    { id: 3, message: "Your booking request was declined.", time: "2 hours ago", read: true },
-    { id: 4, message: "Your booking for the food walk is awaiting confirmation.", time: "Yesterday", read: true },
-    { id: 5, message: "Your booking for the temple tour was cancelled.", time: "Yesterday", read: true },
-    { id: 6, message: "Your booking for the photo walk was confirmed.", time: "2 days ago", read: true },
-    { id: 7, message: "Your booking request was sent.", time: "3 days ago", read: true },
-    { id: 8, message: "Your booking for the market tour was confirmed.", time: "4 days ago", read: true },
-];
+function formatNotificationTime(value) {
+    const elapsedSeconds = (new Date(value).getTime() - Date.now()) / 1000;
+    if (!Number.isFinite(elapsedSeconds)) return "";
+
+    const units = [
+        ["year", 60 * 60 * 24 * 365],
+        ["month", 60 * 60 * 24 * 30],
+        ["week", 60 * 60 * 24 * 7],
+        ["day", 60 * 60 * 24],
+        ["hour", 60 * 60],
+        ["minute", 60],
+        ["second", 1],
+    ];
+    const [unit, seconds] = units.find(([, size]) => Math.abs(elapsedSeconds) >= size) ?? units.at(-1);
+    return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+        Math.round(elapsedSeconds / seconds),
+        unit
+    );
+}
 
 export default function NotificationBell() {
     const { user } = useAuth();
     const containerRef = useRef(null);
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+    const [loadResult, setLoadResult] = useState({
+        userId: null,
+        reloadKey: 0,
+        status: "loading",
+        notifications: [],
+    });
+    const [actionError, setActionError] = useState("");
+    const [markingId, setMarkingId] = useState(null);
+    const [isMarkingAll, setIsMarkingAll] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
+
+    useEffect(() => {
+        if (!user?.id) return undefined;
+
+        let cancelled = false;
+
+        getMyNotifications()
+            .then((items) => {
+                if (!cancelled) {
+                    setLoadResult({ userId: user.id, reloadKey, status: "ready", notifications: items });
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setLoadResult({ userId: user.id, reloadKey, status: "error", notifications: [] });
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user?.id, reloadKey]);
 
     useEffect(() => {
         if (!isOpen) return undefined;
@@ -46,30 +90,71 @@ export default function NotificationBell() {
         };
     }, [isOpen]);
 
-    if (!hasRole(user, "CUSTOMER")) return null;
+    if (!hasRole(user, "CUSTOMER") && !hasRole(user, "PROVIDER")) return null;
 
-    const unreadCount = notifications.filter((notification) => !notification.read).length;
+    const currentRequestMatches =
+        loadResult.userId === user?.id && loadResult.reloadKey === reloadKey;
+    const isLoading = !currentRequestMatches || loadResult.status === "loading";
+    const loadError =
+        currentRequestMatches && loadResult.status === "error"
+            ? "We couldn't load your notifications."
+            : "";
+    const notifications =
+        currentRequestMatches && loadResult.status === "ready" ? loadResult.notifications : [];
+    const unreadCount = notifications.filter((notification) => !notification.isRead).length;
     const visibleNotifications = isExpanded ? notifications : notifications.slice(0, 3);
 
-    const markAsRead = (id) => {
-        setNotifications((current) =>
-            current.map((notification) =>
-                notification.id === id ? { ...notification, read: true } : notification
-            )
-        );
+    const toggleOpen = () => {
+        if (isOpen) {
+            setIsOpen(false);
+            setIsExpanded(false);
+            return;
+        }
+
+        setIsOpen(true);
+        setActionError("");
+        setReloadKey((key) => key + 1);
     };
 
-    const markAllAsRead = () => {
-        setNotifications((current) =>
-            current.map((notification) => ({ ...notification, read: true }))
-        );
+    const markAsRead = async (id) => {
+        setMarkingId(id);
+        setActionError("");
+        try {
+            await markNotificationRead(id);
+            setLoadResult((current) => ({
+                ...current,
+                notifications: current.notifications.map((notification) =>
+                    notification.id === id ? { ...notification, isRead: true } : notification
+                ),
+            }));
+        } catch {
+            setActionError("We couldn't mark that notification as read. Try again.");
+        } finally {
+            setMarkingId(null);
+        }
+    };
+
+    const markAllAsRead = async () => {
+        setIsMarkingAll(true);
+        setActionError("");
+        try {
+            await markAllNotificationsRead();
+            setLoadResult((current) => ({
+                ...current,
+                notifications: current.notifications.map((notification) => ({ ...notification, isRead: true })),
+            }));
+        } catch {
+            setActionError("We couldn't mark your notifications as read. Try again.");
+        } finally {
+            setIsMarkingAll(false);
+        }
     };
 
     return (
         <div ref={containerRef} className="relative">
             <button
                 type="button"
-                onClick={() => setIsOpen((open) => !open)}
+                onClick={toggleOpen}
                 aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
                 aria-expanded={isOpen}
                 aria-controls="notification-dropdown"
@@ -108,17 +193,37 @@ export default function NotificationBell() {
                         <button
                             type="button"
                             onClick={markAllAsRead}
-                            disabled={unreadCount === 0}
+                            disabled={unreadCount === 0 || isMarkingAll}
                             className="rounded-sm text-sm font-normal text-white transition hover:text-gray-400 focus:outline-none focus:underline disabled:cursor-default disabled:text-gray-400"
                         >
-                            Mark all as read
+                            {isMarkingAll ? "Marking…" : "Mark all as read"}
                         </button>
                     </header>
 
                     <div
                         className={isExpanded ? "max-h-[70vh] overflow-y-auto thin-scrollbar" : ""}
                     >
-                        {notifications.length === 0 ? (
+                        {actionError && (
+                            <p role="alert" className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {actionError}
+                            </p>
+                        )}
+                        {isLoading ? (
+                            <p role="status" className="p-6 text-center text-sm text-text-muted">
+                                Loading notifications…
+                            </p>
+                        ) : loadError ? (
+                            <div role="alert" className="p-6 text-center text-sm text-red-700">
+                                <p>{loadError}</p>
+                                <button
+                                    type="button"
+                                    onClick={() => setReloadKey((key) => key + 1)}
+                                    className="mt-2 font-semibold text-primary hover:underline"
+                                >
+                                    Try again
+                                </button>
+                            </div>
+                        ) : notifications.length === 0 ? (
                             <p className="p-6 text-center text-md text-text-muted">
                                 No notifications
                             </p>
@@ -128,19 +233,20 @@ export default function NotificationBell() {
                                     key={notification.id}
                                     type="button"
                                     onClick={() => markAsRead(notification.id)}
+                                    disabled={notification.isRead || markingId === notification.id || isMarkingAll}
                                     className="flex w-full items-start gap-3 border-b border-gray-100 bg-white p-4 text-left transition hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
                                 >
                                     <span className="min-w-0 flex-1">
                                         <span className={`block text-sm text-text-main ${
-                                            notification.read ? "font-normal" : "font-semibold"
+                                            notification.isRead ? "font-normal" : "font-semibold"
                                         }`}>
                                             {notification.message}
                                         </span>
                                         <span className="mt-1 block text-xs text-text-muted">
-                                            {notification.time}
+                                            {formatNotificationTime(notification.createdAt)}
                                         </span>
                                     </span>
-                                    {!notification.read && (
+                                    {!notification.isRead && (
                                         <span
                                             aria-label="Unread"
                                             className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500"
@@ -151,7 +257,7 @@ export default function NotificationBell() {
                         )}
                     </div>
 
-                    {notifications.length > 0 && (
+                    {!isLoading && !loadError && notifications.length > 0 && (
                         <footer className="border-t border-gray-200 p-2.5 text-center">
                             <button
                                 type="button"
