@@ -12,7 +12,7 @@ export default function ProviderTabs() {
     const tabs = [
         { label: "Dashboard", to: "/provider/dashboard", paths: ["/provider/dashboard", "/provider/services/new"] },
         { label: "My services", to: "/provider/services", paths: ["/provider/services"] },
-        { label: "Booking requests" },
+        { label: "Booking requests", to: "/provider/booking-requests", paths: ["/provider/booking-requests"] },
         { label: "Availability" },
     ];
 

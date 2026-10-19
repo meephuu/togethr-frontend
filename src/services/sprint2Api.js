@@ -201,3 +201,52 @@ export async function createBooking({ serviceId, slotId }) {
         body: { serviceId, slotId },
     });
 }
+
+/**
+ * @typedef {Object} BookingRequest
+ * @property {string} id
+ * @property {"WAITING_FOR_CONFIRMATION"|"CONFIRMED"|"REJECTED"|"EXPIRED"|"CANCELLED"|"COMPLETED"} bookingStatus
+ * @property {string} appointmentDate "YYYY-MM-DD"
+ * @property {string|null} startTime "HH:MM", null for a whole-day booking
+ * @property {string|null} endTime
+ * @property {number|null} totalPrice
+ * @property {string} createdAt ISO timestamp
+ * @property {string|null} respondBy ISO timestamp the provider must answer by
+ *   (createdAt + 24h); null once answered
+ * @property {{ id: string, title: string, location: string }} service
+ * @property {{ firstname: string, lastname: string, profilePhotoUrl: string|null }} customer
+ */
+
+/**
+ * Booking requests for the signed-in provider's services, newest first (US6-2).
+ * GET /api/providers/me/booking-requests → { bookingRequests }
+ * - 403 when the account has no provider profile
+ * @returns {Promise<BookingRequest[]>}
+ */
+export async function getBookingRequests() {
+    if (USE_MOCKS) return mocks.getBookingRequests();
+    const { bookingRequests } = await request(OpenAPI, { method: "GET", url: "/providers/me/booking-requests" });
+    return bookingRequests;
+}
+
+/**
+ * The provider accepts or rejects a request (US6-2).
+ * PATCH /api/bookings/:id/status { status: "CONFIRMED" | "REJECTED" }
+ * - 200 { booking } and the customer gets a notification
+ * - 409 "This request has expired" after 24 hours unanswered (the booking
+ *   becomes EXPIRED); 409 also when it was already answered or cancelled
+ * - 403 for anyone but the service's provider; 404 when it doesn't exist
+ * @param {string} bookingId
+ * @param {"CONFIRMED"|"REJECTED"} status
+ * @returns {Promise<{ booking: Object }>}
+ */
+export async function updateBookingStatus(bookingId, status) {
+    if (USE_MOCKS) return mocks.updateBookingStatus(bookingId, status);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/bookings/{id}/status",
+        path: { id: bookingId },
+        mediaType: "application/json",
+        body: { status },
+    });
+}
