@@ -6,6 +6,7 @@
 
 import { ApiError } from "./generated";
 import { getMockScenario } from "./mockScenarios";
+import { hourSlotsFor } from "../lib/availability";
 
 const DELAY_MS = 800;
 
@@ -40,6 +41,8 @@ const myServices = [
         location: "Bangkok – Yaowarat & Old Town",
         rate: 450,
         rateUnit: "hour",
+        startTime: "17:00",
+        endTime: "21:00",
         coverPhotoUrl: null,
         status: "PUBLISHED",
         bookingsThisMonth: 0,
@@ -50,6 +53,8 @@ const myServices = [
         location: "Bangkok – Rattanakosin",
         rate: 600,
         rateUnit: "hour",
+        startTime: "06:00",
+        endTime: "09:00",
         coverPhotoUrl: null,
         status: "PUBLISHED",
         bookingsThisMonth: 4,
@@ -60,6 +65,8 @@ const myServices = [
         location: "Bangkok – Chatuchak",
         rate: 2200,
         rateUnit: "day",
+        startTime: "09:00",
+        endTime: "17:00",
         coverPhotoUrl: null,
         status: "PUBLISHED",
         bookingsThisMonth: 3,
@@ -70,11 +77,97 @@ const myServices = [
         location: "Ayutthaya",
         rate: 2800,
         rateUnit: "day",
+        startTime: "07:00",
+        endTime: "18:00",
         coverPhotoUrl: null,
         status: "UNPUBLISHED",
         bookingsThisMonth: 0,
     },
 ];
+
+// Availability (US4-2). Day-rate services toggle whole dates (openDates/
+// bookedDates). Hour-rate services set which hours are open per date
+// (openSlots/bookedSlots, date -> "HH:00" strings), since a booking on an
+// hour-rate service only takes part of the day. Seeded relative to today so
+// the mock still makes sense whenever this runs.
+function isoDate(daysFromToday) {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + daysFromToday);
+    return date.toISOString().slice(0, 10);
+}
+
+const cloneSlotMap = (map) => Object.fromEntries(Object.entries(map).map(([date, hours]) => [date, [...hours]]));
+
+const templePhotoHours = hourSlotsFor("06:00", "09:00"); // ["06:00", "07:00", "08:00"]
+
+const AVAILABILITY = {
+    "svc-old-town": { openSlots: {}, bookedSlots: {} },
+    "svc-temple-photo": {
+        openSlots: {
+            [isoDate(2)]: [templePhotoHours[0]],
+            [isoDate(3)]: [...templePhotoHours],
+            [isoDate(4)]: [templePhotoHours[0], templePhotoHours[1]],
+            [isoDate(10)]: [templePhotoHours[1], templePhotoHours[2]],
+        },
+        bookedSlots: {
+            [isoDate(2)]: [templePhotoHours[1], templePhotoHours[2]],
+            [isoDate(9)]: [...templePhotoHours],
+            [isoDate(16)]: [templePhotoHours[0]],
+            [isoDate(23)]: [templePhotoHours[2]],
+        },
+    },
+    "svc-chatuchak": {
+        openDates: [isoDate(5), isoDate(12), isoDate(19)],
+        bookedDates: [isoDate(5), isoDate(12), isoDate(19)],
+    },
+    "svc-ayutthaya": { openDates: [], bookedDates: [] },
+};
+
+function isHourlyService(serviceId) {
+    return myServices.find((service) => service.id === serviceId)?.rateUnit === "hour";
+}
+
+export async function getAvailability(serviceId) {
+    await wait();
+    const isHourly = isHourlyService(serviceId);
+    switch (getMockScenario("availability")) {
+        case "empty":
+            return isHourly ? { openSlots: {}, bookedSlots: {} } : { openDates: [], bookedDates: [] };
+        case "network":
+            throw networkError();
+        default: {
+            const entry =
+                AVAILABILITY[serviceId] ?? (isHourly ? { openSlots: {}, bookedSlots: {} } : { openDates: [], bookedDates: [] });
+            return isHourly
+                ? { openSlots: cloneSlotMap(entry.openSlots), bookedSlots: cloneSlotMap(entry.bookedSlots) }
+                : { openDates: [...entry.openDates], bookedDates: [...entry.bookedDates] };
+        }
+    }
+}
+
+// openAvailability: day-rate = array of open dates; hour-rate = { [date]: openHours[] }.
+export async function updateAvailability(serviceId, openAvailability) {
+    await wait(600);
+    if (getMockScenario("availability") === "network") throw networkError();
+    const isHourly = isHourlyService(serviceId);
+
+    if (isHourly) {
+        const entry = AVAILABILITY[serviceId] ?? (AVAILABILITY[serviceId] = { openSlots: {}, bookedSlots: {} });
+        const nextOpenSlots = {};
+        // Booked hours stay open no matter what's submitted.
+        new Set([...Object.keys(openAvailability), ...Object.keys(entry.bookedSlots)]).forEach((date) => {
+            const merged = new Set([...(openAvailability[date] ?? []), ...(entry.bookedSlots[date] ?? [])]);
+            if (merged.size > 0) nextOpenSlots[date] = Array.from(merged);
+        });
+        entry.openSlots = nextOpenSlots;
+        return { openSlots: cloneSlotMap(entry.openSlots), bookedSlots: cloneSlotMap(entry.bookedSlots) };
+    }
+
+    const entry = AVAILABILITY[serviceId] ?? (AVAILABILITY[serviceId] = { openDates: [], bookedDates: [] });
+    entry.openDates = Array.from(new Set([...openAvailability, ...entry.bookedDates]));
+    return { openDates: [...entry.openDates], bookedDates: [...entry.bookedDates] };
+}
 
 export async function getMyServices() {
     await wait();

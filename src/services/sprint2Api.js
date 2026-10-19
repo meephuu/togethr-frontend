@@ -39,6 +39,8 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === "true";
  * @property {string} location
  * @property {number} rate
  * @property {"hour"|"day"} rateUnit
+ * @property {string} startTime "HH:MM"
+ * @property {string} endTime "HH:MM"
  * @property {string|null} coverPhotoUrl
  * @property {"PUBLISHED"|"UNPUBLISHED"} status
  * @property {number} bookingsThisMonth
@@ -126,6 +128,47 @@ export async function searchServices(searchParams) {
         method: "GET",
         url: "/services/search",
         query: Object.fromEntries(searchParams.entries())
+    });
+}
+
+/**
+ * A service's availability calendar (US4-2). Day-rate services (rateUnit
+ * "day") toggle whole dates; hour-rate services set which hours are open per
+ * date, since a booking only takes part of the day. Bookable hours are
+ * generated from the service's startTime/endTime (see lib/availability.js),
+ * not stored.
+ * GET /api/providers/me/services/:id/availability
+ *   → day-rate:  { openDates, bookedDates } (YYYY-MM-DD strings)
+ *   → hour-rate: { openSlots, bookedSlots } (date -> ["HH:00", ...])
+ * @param {string} serviceId
+ * @returns {Promise<{ openDates: string[], bookedDates: string[] } | { openSlots: Record<string, string[]>, bookedSlots: Record<string, string[]> }>}
+ */
+export async function getAvailability(serviceId) {
+    if (USE_MOCKS) return mocks.getAvailability(serviceId);
+    return request(OpenAPI, {
+        method: "GET",
+        url: "/providers/me/services/{id}/availability",
+        path: { id: serviceId },
+    });
+}
+
+/**
+ * Replaces open availability for a service. Already-booked dates/hours stay
+ * open no matter what's submitted — the server re-adds them.
+ * PUT /api/providers/me/services/:id/availability { openDates } or { openSlots }
+ * @param {string} serviceId
+ * @param {string[]|Record<string, string[]>} openAvailability Day-rate: array
+ *   of open dates. Hour-rate: date -> array of open "HH:00" hours.
+ * @returns {Promise<{ openDates: string[], bookedDates: string[] } | { openSlots: Record<string, string[]>, bookedSlots: Record<string, string[]> }>}
+ */
+export async function updateAvailability(serviceId, openAvailability) {
+    if (USE_MOCKS) return mocks.updateAvailability(serviceId, openAvailability);
+    return request(OpenAPI, {
+        method: "PUT",
+        url: "/providers/me/services/{id}/availability",
+        path: { id: serviceId },
+        mediaType: "application/json",
+        body: Array.isArray(openAvailability) ? { openDates: openAvailability } : { openSlots: openAvailability },
     });
 }
 

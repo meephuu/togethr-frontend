@@ -7,6 +7,7 @@ import ComingSoon from "../../components/ui/ComingSoon";
 import { AlertCircleIcon, BriefcaseIcon, PlusIcon } from "../../components/ui/Icons";
 import ServiceStatusPill from "../../components/services/ServiceStatusPill";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
+import AvailabilityModal from "../../components/services/AvailabilityModal";
 import { getMyServices } from "../../services/sprint2Api";
 import { RATE_UNIT_LABEL, formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
@@ -39,7 +40,7 @@ function TableHead() {
     );
 }
 
-function ServicesTable({ services }) {
+function ServicesTable({ services, onAvailability }) {
     return (
         <section className={`${CARD_CLASS} overflow-hidden`}>
             <div className="overflow-x-auto">
@@ -71,7 +72,13 @@ function ServicesTable({ services }) {
                                 <td className={`${CELL_CLASS} text-right text-sm font-semibold`}>
                                     <div className="flex justify-end gap-5">
                                         <ComingSoon>View</ComingSoon>
-                                        <ComingSoon>Availability</ComingSoon>
+                                        <button
+                                            type="button"
+                                            onClick={() => onAvailability(service)}
+                                            className="font-semibold text-primary hover:text-primary-hover hover:underline"
+                                        >
+                                            Availability
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -159,6 +166,7 @@ export default function MyServicesPage() {
     const navigate = useNavigate();
     const [result, setResult] = useState({ status: "loading", services: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
+    const [availabilityService, setAvailabilityService] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -216,12 +224,16 @@ export default function MyServicesPage() {
             {isEmpty && <EmptyState onCreate={goToCreate} />}
             {status === "ready" && !isEmpty && (
                 <>
-                    <ServicesTable services={services} />
+                    <ServicesTable services={services} onAvailability={setAvailabilityService} />
                     <p className="text-[13px] text-text-muted">
                         Unpublished services are hidden from search. Customers who open one see “This service is no
                         longer available”.
                     </p>
                 </>
+            )}
+
+            {availabilityService && (
+                <AvailabilityModal service={availabilityService} onClose={() => setAvailabilityService(null)} />
             )}
         </PageShell>
     );

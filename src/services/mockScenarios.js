@@ -36,6 +36,14 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    availability: {
+        label: "Availability",
+        options: {
+            list: "Has open & booked dates",
+            empty: "No dates set",
+            network: "Network error",
+        },
+    },
 };
 
 // In-memory copy, so switching still works for this tab when storage is blocked.
