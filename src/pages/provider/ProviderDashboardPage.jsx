@@ -4,7 +4,6 @@ import PageShell from "../../components/ui/PageShell";
 import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
 import Toast from "../../components/ui/Toast";
-import ComingSoon from "../../components/ui/ComingSoon";
 import { CalendarIcon, PlusIcon } from "../../components/ui/Icons";
 import ServiceStatusPill from "../../components/services/ServiceStatusPill";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
@@ -175,10 +174,9 @@ export default function ProviderDashboardPage() {
             {publishedService && (
                 <Toast title="Service published" onDismiss={() => setPublishedService(null)}>
                     <p className="text-text-muted">“{publishedService.title}” is now live in search.</p>
-                    {/* Availability is US4-2; link it once that page exists. */}
-                    <p className="mt-1.5 font-semibold text-text-muted" title="Coming soon">
-                        Set your availability <span className="font-normal">(coming soon)</span>
-                    </p>
+                    <Link to="/provider/services?availability=1" className={`${LINK_CLASS} mt-1.5`}>
+                        Set your availability
+                    </Link>
                 </Toast>
             )}
 
@@ -237,7 +235,9 @@ export default function ProviderDashboardPage() {
                             <span className="text-sm leading-relaxed text-text-muted">
                                 Customers can only book the slots you make available.
                             </span>
-                            <ComingSoon className="text-sm font-semibold">Go to Availability (coming soon)</ComingSoon>
+                            <Link to="/provider/services?availability=1" className={LINK_CLASS}>
+                                Go to Availability
+                            </Link>
                         </div>
                     </section>
                 </aside>
