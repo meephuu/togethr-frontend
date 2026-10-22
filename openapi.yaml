@@ -161,6 +161,49 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags: [Users]
+      operationId: deleteMyAccount
+      summary: Delete the signed-in user's account (US2-3)
+      description: >
+        Re-authenticates with the password, then deactivates the account and
+        anonymises its personal data, emails a confirmation and clears the
+        session cookie. Refused with 409 while the user has a booking in
+        progress, as the customer or as the provider of the booked service.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountRequest"
+      responses:
+        "200":
+          description: Account deleted and session cookie cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteAccountResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: 'Wrong password ({ "error": "incorrect password" }) or not authenticated'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The user has bookings in progress; nothing was changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveBookingsResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /users/me/provider:
     post:
@@ -519,6 +562,54 @@ components:
         message:
           type: string
           example: logged out
+
+    DeleteAccountRequest:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          format: password
+
+    DeleteAccountResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: account deleted
+
+    ActiveBooking:
+      type: object
+      required: [id, bookingStatus, appointmentDate, service]
+      properties:
+        id:
+          type: string
+        bookingStatus:
+          type: string
+          description: WAITING_FOR_CONFIRMATION or CONFIRMED (IN_PROGRESS once US6-5 adds it)
+          example: CONFIRMED
+        appointmentDate:
+          type: string
+          format: date
+          example: "2026-11-05"
+        service:
+          type: object
+          required: [title]
+          properties:
+            title:
+              type: string
+
+    ActiveBookingsResponse:
+      type: object
+      required: [error, bookings]
+      properties:
+        error:
+          type: string
+        bookings:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActiveBooking"
 
     AddProviderProfileRequest:
       type: object

@@ -3,6 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { AddProviderProfileRequest } from '../models/AddProviderProfileRequest';
+import type { DeleteAccountRequest } from '../models/DeleteAccountRequest';
+import type { DeleteAccountResponse } from '../models/DeleteAccountResponse';
 import type { LoginResponse } from '../models/LoginResponse';
 import type { ProfilePhotoResponse } from '../models/ProfilePhotoResponse';
 import type { ProfileResponse } from '../models/ProfileResponse';
@@ -48,6 +50,32 @@ export class UsersService {
                 401: `Authentication failed or is required`,
                 404: `Resource not found`,
                 409: `Resource already exists`,
+                500: `Unexpected server error`,
+            },
+        });
+    }
+    /**
+     * Delete the signed-in user's account (US2-3)
+     * Re-authenticates with the password, then deactivates the account and anonymises its personal data, emails a confirmation and clears the session cookie. Refused with 409 while the user has a booking in progress, as the customer or as the provider of the booked service.
+     *
+     * @returns DeleteAccountResponse Account deleted and session cookie cleared
+     * @throws ApiError
+     */
+    public static deleteMyAccount({
+        requestBody,
+    }: {
+        requestBody: DeleteAccountRequest,
+    }): CancelablePromise<DeleteAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/users/me',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid request`,
+                401: `Wrong password ({ "error": "incorrect password" }) or not authenticated`,
+                404: `Resource not found`,
+                409: `The user has bookings in progress; nothing was changed`,
                 500: `Unexpected server error`,
             },
         });
