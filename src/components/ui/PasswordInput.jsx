@@ -23,7 +23,9 @@ function EyeOffIcon() {
 // Reusable password field with show/hide toggle.
 // `label` and `labelAction` (e.g. a "Forgot password?" link) are optional,
 // so this can be used with or without a heading row above the input.
+// `ref` goes to the <input>, e.g. to focus it when a dialog opens.
 export default function PasswordInput({
+    ref,
     label,
     labelAction,
     name,
@@ -51,6 +53,7 @@ export default function PasswordInput({
             )}
             <div className="relative">
                 <input
+                    ref={ref}
                     id={name}
                     name={name}
                     type={show ? "text" : "password"}

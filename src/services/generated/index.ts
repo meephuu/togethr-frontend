@@ -7,10 +7,14 @@ export { CancelablePromise, CancelError } from './core/CancelablePromise';
 export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
+export type { ActiveBooking } from './models/ActiveBooking';
+export type { ActiveBookingsResponse } from './models/ActiveBookingsResponse';
 export type { AddProviderProfileRequest } from './models/AddProviderProfileRequest';
 export type { AuthenticatedUser } from './models/AuthenticatedUser';
 export type { AuthUser } from './models/AuthUser';
 export type { BaseRegistrationFields } from './models/BaseRegistrationFields';
+export type { DeleteAccountRequest } from './models/DeleteAccountRequest';
+export type { DeleteAccountResponse } from './models/DeleteAccountResponse';
 export type { ErrorResponse } from './models/ErrorResponse';
 export { Gender } from './models/Gender';
 export type { LoginRequest } from './models/LoginRequest';

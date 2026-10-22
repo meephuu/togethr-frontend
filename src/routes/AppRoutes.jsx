@@ -7,6 +7,7 @@ import HomePage from "../pages/public/HomePage";
 import SignUpPage from "../pages/public/SignUpPage";
 import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
 import PublicProfilePage from "../pages/public/PublicProfilePage";
+import AccountDeletedPage from "../pages/public/AccountDeletedPage";
 import ProfileEditPage from "../pages/private/ProfileEditPage";
 import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
@@ -44,6 +45,7 @@ export default function AppRoutes() {
                     element={<ProviderRegistrationPage />}
                 />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/account-deleted" element={<AccountDeletedPage />} />
                 <Route path="/profile/edit" element={<ProfileEditPage />} />
                 <Route path="/profile/:id" element={<PublicProfilePage />} />
                 <Route path="/services/:id" element={<ServiceDetailPage />} />
