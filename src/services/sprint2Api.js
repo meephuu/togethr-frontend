@@ -284,3 +284,47 @@ export async function updateBookingStatus(bookingId, status) {
         body: { status },
     });
 }
+
+/**
+ * @typedef {Object} MyBooking
+ * @property {string} id
+ * @property {"WAITING_FOR_CONFIRMATION"|"CONFIRMED"|"REJECTED"|"EXPIRED"|"CANCELLED"|"COMPLETED"} bookingStatus
+ * @property {string} appointmentDate "YYYY-MM-DD"
+ * @property {string|null} startTime "HH:MM", null for a whole-day booking
+ * @property {string|null} endTime
+ * @property {number|null} totalPrice
+ * @property {string} startsAt ISO time the booking begins
+ * @property {boolean} canCancel confirmed and not started yet
+ * @property {{ id: string, title: string, location: string, coverPhotoUrl: string|null }} service
+ * @property {{ id: string, firstname: string, lastname: string, profilePhotoUrl: string|null }} provider
+ */
+
+/**
+ * The signed-in customer's bookings for My bookings (US6-4). Upcoming are
+ * waiting or confirmed and not started, soonest first; past is the rest,
+ * most recent first.
+ * GET /api/bookings/me → { upcoming: MyBooking[], past: MyBooking[] }
+ * @returns {Promise<{ upcoming: MyBooking[], past: MyBooking[] }>}
+ */
+export async function getMyBookings() {
+    if (USE_MOCKS) return mocks.getMyBookings();
+    return request(OpenAPI, { method: "GET", url: "/bookings/me" });
+}
+
+/**
+ * The customer cancels a confirmed booking that hasn't started (US6-4).
+ * PATCH /api/bookings/:id/cancel
+ * - 200 { booking } and the provider gets a notification
+ * - 409 when it isn't confirmed or has already started
+ * - 403 for anyone but the booking's customer; 404 when it doesn't exist
+ * @param {string} bookingId
+ * @returns {Promise<{ booking: Object }>}
+ */
+export async function cancelBooking(bookingId) {
+    if (USE_MOCKS) return mocks.cancelBooking(bookingId);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/bookings/{id}/cancel",
+        path: { id: bookingId },
+    });
+}

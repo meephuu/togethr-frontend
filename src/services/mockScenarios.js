@@ -52,6 +52,22 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    myBookings: {
+        label: "My bookings",
+        options: {
+            list: "Upcoming & past",
+            empty: "No bookings",
+            network: "Network error",
+        },
+    },
+    cancelBooking: {
+        label: "Cancel booking",
+        options: {
+            success: "Success (200)",
+            started: "Already started (409)",
+            network: "Network error",
+        },
+    },
     availability: {
         label: "Availability",
         options: {

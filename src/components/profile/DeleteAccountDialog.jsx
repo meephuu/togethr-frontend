@@ -5,7 +5,7 @@ import PasswordInput from "../ui/PasswordInput";
 import { AlertCircleIcon, CheckIcon, TrashIcon, XIcon } from "../ui/Icons";
 import { ApiError, UsersService } from "../../services/generated";
 
-// Den's My bookings page (US6-4) isn't merged yet: placeholder until it is.
+// The customer's My bookings page (US6-4), where bookings can be cancelled
 const MY_BOOKINGS_PATH = "/customer/bookings";
 
 // The API's 401 body for a wrong password. Any other 401 means the session ended.

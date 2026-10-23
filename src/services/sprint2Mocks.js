@@ -441,3 +441,72 @@ export async function updateBookingStatus(bookingId, status) {
     item.respondBy = null;
     return { booking: { id: item.id, bookingStatus: status } };
 }
+
+// ---------------------------------------------------------------------------
+// My bookings (US6-4). Cancels made through the mock stick until reload.
+// ---------------------------------------------------------------------------
+
+function mockBooking(id, status, daysFromToday, startTime, endTime, fields) {
+    const appointmentDate = mockDateFromToday(daysFromToday);
+    const [y, m, d] = appointmentDate.split("-").map(Number);
+    const [hh, mm] = (startTime || "00:00").split(":").map(Number);
+    const startsAt = new Date(y, m - 1, d, hh, mm).toISOString();
+    return { id, bookingStatus: status, appointmentDate, startTime, endTime, startsAt, ...fields };
+}
+
+const MALI = { id: "provider-mali", firstname: "Mali", lastname: "S.", profilePhotoUrl: null };
+const ARTHIT = { id: "provider-arthit", firstname: "Arthit", lastname: "K.", profilePhotoUrl: null };
+const COVERLESS = (service) => ({ ...service, coverPhotoUrl: null });
+
+const myBookings = [
+    mockBooking("bk-1", "CONFIRMED", 4, "09:00", "12:00", { totalPrice: 1350, service: COVERLESS(OLD_TOWN), provider: MALI }),
+    mockBooking("bk-2", "WAITING_FOR_CONFIRMATION", 6, "06:00", "08:00", { totalPrice: 1200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
+    mockBooking("bk-3", "CONFIRMED", 12, null, null, { totalPrice: 2200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
+    mockBooking("bk-4", "COMPLETED", -9, "09:00", "11:00", { totalPrice: 900, service: COVERLESS(OLD_TOWN), provider: MALI }),
+    mockBooking("bk-5", "REJECTED", -2, "15:00", "17:00", { totalPrice: 1200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
+];
+
+const isUpcoming = (item) =>
+    ["WAITING_FOR_CONFIRMATION", "CONFIRMED"].includes(item.bookingStatus) && new Date(item.startsAt).getTime() > Date.now();
+
+export async function getMyBookings() {
+    await wait();
+    switch (getMockScenario("myBookings")) {
+        case "empty":
+            return { upcoming: [], past: [] };
+        case "network":
+            throw networkError();
+        default: {
+            const items = myBookings.map((item) => ({
+                ...item,
+                canCancel: item.bookingStatus === "CONFIRMED" && isUpcoming(item),
+            }));
+            return {
+                upcoming: items.filter(isUpcoming).sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
+                past: items.filter((item) => !isUpcoming(item)).sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
+            };
+        }
+    }
+}
+
+export async function cancelBooking(bookingId) {
+    await wait(500);
+    const url = `/api/bookings/${bookingId}/cancel`;
+    const item = myBookings.find((candidate) => candidate.id === bookingId);
+    if (!item) throw httpError("PATCH", url, 404, "Not Found", { error: "Booking not found." });
+
+    switch (getMockScenario("cancelBooking")) {
+        case "started":
+            throw httpError("PATCH", url, 409, "Conflict", {
+                error: "This booking has already started and can no longer be cancelled.",
+            });
+        case "network":
+            throw networkError();
+        default:
+    }
+    if (item.bookingStatus !== "CONFIRMED") {
+        throw httpError("PATCH", url, 409, "Conflict", { error: "Only a confirmed booking can be cancelled." });
+    }
+    item.bookingStatus = "CANCELLED";
+    return { booking: { id: item.id, bookingStatus: "CANCELLED" } };
+}
