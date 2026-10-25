@@ -6,6 +6,7 @@ import Button from "../../components/ui/Button";
 import ChipSelect from "../../components/ui/ChipSelect";
 import ProfilePhotoField from "../../components/profile/ProfilePhotoField";
 import DeleteAccountSection from "../../components/profile/DeleteAccountSection";
+import ThemeSection from "../../components/profile/ThemeSection";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, UsersService } from "../../services/generated";
 import {
@@ -396,6 +397,7 @@ export default function ProfileEditPage() {
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </Button>
                     </form>
+                    <ThemeSection />
                     <DeleteAccountSection isProvider={isProvider} />
                     </>
                 )}

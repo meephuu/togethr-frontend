@@ -4,13 +4,16 @@ import Avatar from "./Avatar";
 import { useAuth } from "../../hooks/useAuth";
 import { AuthService } from "../../services/generated";
 import { dashboardFor } from "../../lib/roles";
-import logo from "../../assets/temp-logo-black.png";
+import logoBlack from "../../assets/temp-logo-black.png";
+import logoWhite from "../../assets/temp-logo-white.png";
+import { useTheme } from "../../hooks/useTheme";
 import NotificationBell from './NotificationBell'
 
 // children: an optional second row inside the sticky nav, e.g. ProviderTabs.
 const Navbar = ({ children }) => {
     const navigate = useNavigate();
     const { user, setUser, isAuthenticated } = useAuth();
+    const { theme } = useTheme();
 
     const handleLogout = async () => {
         try {
@@ -32,7 +35,7 @@ const Navbar = ({ children }) => {
                     className="flex items-center gap-3 cursor-pointer"
                 >
                     <img
-                        src={logo}
+                        src={theme === "dark" ? logoWhite : logoBlack}
                         alt="Togethr Logo"
                         className="h-12 w-auto object-contain"
                     />

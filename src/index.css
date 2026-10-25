@@ -59,3 +59,119 @@
     font-weight: 600;
   }
 }
+
+/* ==========================================================================
+   Dark theme. ThemeProvider puts the "dark" class on <html>.
+
+   Pages are styled with Tailwind's palette (bg-white, border-gray-200,
+   bg-emerald-50 ...), which compiles to var(--color-*). Redefining those
+   variables here darkens every page without touching components. Where one
+   colour plays two roles (e.g. red-600 is both a text colour and a button
+   background), only the text-* class is overridden below.
+   ========================================================================== */
+.dark {
+  color-scheme: dark;
+
+  /* Design tokens from @theme above */
+  --color-primary: #155DFC;
+  --color-primary-hover: #155DFF;
+  --color-secondary: #111827;
+  --color-background: #1f2937;
+  --color-text-main: #e5e7eb;
+  --color-text-muted: #9ca3af;
+
+  /* Neutral scale, inverted: light text on dark surfaces */
+  --color-gray-50: #111827;
+  --color-gray-100: #374151;
+  --color-gray-200: #4b5563;
+  --color-gray-300: #6b7280;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #9ca3af;
+  --color-gray-600: #d1d5db;
+  --color-gray-700: #e5e7eb;
+  --color-gray-800: #f3f4f6;
+  --color-gray-900: #f9fafb;
+
+  /* Status tints: dark tinted fills, muted borders */
+  --color-red-50: #3b1219;
+  --color-red-100: #4c1620;
+  --color-red-200: #7f1d1d;
+  --color-red-300: #991b1b;
+  --color-emerald-50: #052e22;
+  --color-emerald-100: #064e3b;
+  --color-amber-50: #33240a;
+  --color-amber-100: #4a3410;
+  --color-amber-200: #78531a;
+  --color-amber-300: #92661f;
+  --color-blue-50: #0f2347;
+  --color-blue-100: #172e5c;
+}
+
+/* Surfaces that use plain white */
+.dark .bg-white {
+  background-color: var(--color-background);
+}
+.dark .from-white {
+  --tw-gradient-from: var(--color-secondary);
+}
+.dark .via-white {
+  --tw-gradient-via: var(--color-secondary);
+}
+
+/* Footer and cookie banner are dark in both themes (bg-gray-900 would invert) */
+.dark .bg-gray-900 {
+  background-color: #0b1220;
+}
+.dark .hover\:bg-gray-800:hover {
+  background-color: #1f2937;
+}
+.dark .border-gray-600 {
+  border-color: #4b5563;
+}
+
+/* Text colours that are too dark for a dark surface */
+.dark .text-gray-200,
+.dark .text-gray-300 {
+  color: #d1d5db;
+}
+.dark .text-black {
+  color: #ffffff;
+}
+.dark .text-red-500,
+.dark .text-red-600 {
+  color: #f87171;
+}
+.dark .text-red-700,
+.dark .text-red-800 {
+  color: #fca5a5;
+}
+.dark .text-green-600,
+.dark .text-emerald-700 {
+  color: #6ee7b7;
+}
+.dark .text-amber-700,
+.dark .text-amber-800,
+.dark .text-amber-900 {
+  color: #fcd34d;
+}
+.dark .text-blue-600,
+.dark .text-blue-700 {
+  color: #93b4ff;
+}
+.dark .border-red-500,
+.dark .border-red-600 {
+  border-color: #f87171;
+}
+
+/* Scrollbars (see .thin-scrollbar above) */
+.dark .thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+.dark .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280;
+}
+@supports not selector(::-webkit-scrollbar) {
+  .dark .thin-scrollbar {
+    scrollbar-color: #4b5563 transparent;
+  }
+}
