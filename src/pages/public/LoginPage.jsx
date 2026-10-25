@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, AuthService } from "../../services/generated";
@@ -8,6 +8,8 @@ import { dashboardFor } from "../../lib/roles";
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    // Set by ResetPasswordPage after a successful reset (US1-5)
+    const passwordReset = useLocation().state?.passwordReset;
     const { setUser } = useAuth();
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
@@ -96,6 +98,16 @@ const LoginPage = () => {
                     </div>
                 </div>
 
+                {passwordReset && (
+                    <p
+                        className="mb-5 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+                        role="status"
+                    >
+                        Your password has been updated. Log in with your new
+                        password.
+                    </p>
+                )}
+
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                     <div>
@@ -124,6 +136,7 @@ const LoginPage = () => {
                         labelAction={
                             <button
                                 type="button"
+                                onClick={() => navigate("/forgot-password")}
                                 className="text-sm text-text-muted hover:text-primary transition-colors"
                             >
                                 Forgot Password?

@@ -110,6 +110,59 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      operationId: forgotPassword
+      summary: Email a password reset link
+      description: |
+        Emails a one-time reset link (valid for 15 minutes) to a registered
+        account. Always answers 200 with the same message, whether or not the
+        email is registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequest"
+      responses:
+        "200":
+          description: Request accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      operationId: resetPassword
+      summary: Set a new password with a reset token
+      description: |
+        The token comes from the emailed link and works once. An unknown,
+        expired or used token returns 400 and the password is not changed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /users/me:
     get:
       tags: [Users]
@@ -562,6 +615,34 @@ components:
         message:
           type: string
           example: logged out
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: customer@example.com
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+          description: The token from the emailed reset link
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
 
     DeleteAccountRequest:
       type: object

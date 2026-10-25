@@ -5,6 +5,8 @@ import LoginPage from "../pages/public/LoginPage";
 import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
 import HomePage from "../pages/public/HomePage";
 import SignUpPage from "../pages/public/SignUpPage";
+import ForgotPasswordPage from "../pages/public/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/public/ResetPasswordPage";
 import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
 import PublicProfilePage from "../pages/public/PublicProfilePage";
 import AccountDeletedPage from "../pages/public/AccountDeletedPage";
@@ -41,6 +43,14 @@ export default function AppRoutes() {
                 <Route path="/search" element={<FindServicePage />} />
                 <Route path="/sign-up" element={<SignUpPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordPage />}
+                />
+                <Route
+                    path="/reset-password"
+                    element={<ResetPasswordPage />}
+                />
                 <Route
                     path="/provider-registration"
                     element={<ProviderRegistrationPage />}
