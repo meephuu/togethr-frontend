@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../../components/ui/Navbar'
 import Footer from '../../components/ui/Footer'
+import { assetUrl } from '../../lib/assets'
 
 export default function HomePage() {
     const navigate = useNavigate()
@@ -25,85 +26,131 @@ export default function HomePage() {
                         >
                             Get Started
                         </button>
-                        <button className='border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition'>
-                            Learn More
+                        <button
+                            onClick={() => navigate('/search')}
+                            className='border-2 border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition'
+                        >
+                            Explore experiences
                         </button>
                     </div>
                 </div>
             </section>
 
-            {/* Features Section */}
-            <section className='px-4 py-20 bg-gradient-to-r from-blue-50 to-blue-100'>
-                <div className='max-w-5xl mx-auto'>
-                    <h2 className='text-3xl font-bold text-center text-gray-900 mb-12'>Why Choose Us?</h2>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
-                        
-                        {/* Feature 1 */}
-                        <div className='p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition'>
-                            <div className='text-4xl mb-4'>🌍</div>
-                            <h3 className='text-xl font-bold text-gray-900 mb-2'>Explore Anywhere</h3>
-                            <p className='text-gray-600'>Discover hidden gems and local experiences with authentic guides</p>
-                        </div>
+            <section className='px-6 py-20 sm:px-8 sm:py-28 bg-blue-50'>
+                <div className='mx-auto grid max-w-6xl items-center gap-12 md:grid-cols-[0.85fr_1.15fr] md:gap-16'>
+                    <div>
+                            <p className='mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-blue-700'>
+                                See a place differently
+                            </p>
+                            <h2 className='max-w-2xl text-3xl font-semibold leading-tight text-[#252a40] sm:text-4xl'>
+                                Go beyond the guidebook.
+                            </h2>
+                            <p className='mt-5 max-w-lg text-base leading-7 text-gray-600 sm:text-lg'>
+                                Take the scenic route, find a neighborhood favorite, or share a meal. Local experiences make a trip your own.
+                            </p>
+                            <button
+                                onClick={() => navigate('/search')}
+                                className='mt-7 inline-flex items-center gap-2 font-semibold text-blue-700 transition hover:gap-3'
+                            >
+                                Browse experiences <span aria-hidden='true'>→</span>
+                            </button>
+                    </div>
 
-                        {/* Feature 2 */}
-                        <div className='p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition'>
-                            <div className='text-4xl mb-4'>👥</div>
-                            <h3 className='text-xl font-bold text-gray-900 mb-2'>Meet Locals</h3>
-                            <p className='text-gray-600'>Connect with travelers and guides who share your interests</p>
-                        </div>
+                    <div className='grid grid-cols-2 gap-3 sm:gap-4'>
+                        <figure className='col-span-2 overflow-hidden rounded-2xl'>
+                            <img
+                                src={assetUrl('/uploads/services-cover-photo/service006.jpg')}
+                                alt='A lively outdoor market in Bangkok'
+                                className='h-52 w-full object-cover sm:h-72'
+                            />
+                        </figure>
+                        <figure className='overflow-hidden rounded-2xl'>
+                            <img
+                                src={assetUrl('/uploads/services-cover-photo/service005.jpg')}
+                                alt='A traveler exploring a Bangkok temple'
+                                className='h-36 w-full object-cover sm:h-48'
+                            />
+                        </figure>
+                        <figure className='overflow-hidden rounded-2xl'>
+                            <img
+                                src={assetUrl('/uploads/services-cover-photo/service007.jpg')}
+                                alt='Travelers visiting a waterfall in the forest'
+                                className='h-36 w-full object-cover sm:h-48'
+                            />
+                        </figure>
+                    </div>
+                </div>
+            </section>
 
-                        {/* Feature 3 */}
-                        <div className='p-6 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition'>
-                            <div className='text-4xl mb-4'>💯</div>
-                            <h3 className='text-xl font-bold text-gray-900 mb-2'>Verified Profiles</h3>
-                            <p className='text-gray-600'>Trusted community with verified travelers and professional guides</p>
+            <section className=' px-6 py-20 sm:px-8 sm:py-28'>
+                <div className='mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.8fr_1.2fr] md:gap-20'>
+                    <div>
+                        <p className='mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-blue-700'>
+                            A good place to start
+                        </p>
+                        <h2 className='text-3xl font-semibold leading-tight text-[#252a40] sm:text-4xl'>
+                            Your next story starts with a hello.
+                        </h2>
+                    </div>
+                    <div className='divide-y divide-gray-200 border-y border-gray-200'>
+                        <div className='grid gap-2 py-6 sm:grid-cols-[5rem_1fr] sm:gap-6'>
+                            <span className='font-heading text-sm text-blue-700'>01</span>
+                            <div>
+                                <h3 className='text-lg font-semibold text-[#252a40]'>Explore what’s out there</h3>
+                                <p className='mt-2 leading-6 text-gray-600'>Search local experiences and find one that catches your eye.</p>
+                            </div>
+                        </div>
+                        <div className='grid gap-2 py-6 sm:grid-cols-[5rem_1fr] sm:gap-6'>
+                            <span className='font-heading text-sm text-blue-700'>02</span>
+                            <div>
+                                <h3 className='text-lg font-semibold text-[#252a40]'>Meet your guide</h3>
+                                <p className='mt-2 leading-6 text-gray-600'>Connect with the person who will help you see the place differently.</p>
+                            </div>
+                        </div>
+                        <div className='grid gap-2 py-6 sm:grid-cols-[5rem_1fr] sm:gap-6'>
+                            <span className='font-heading text-sm text-blue-700'>03</span>
+                            <div>
+                                <h3 className='text-lg font-semibold text-[#252a40]'>Go make a memory</h3>
+                                <p className='mt-2 leading-6 text-gray-600'>Show up curious. The best moments rarely need a strict itinerary.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* How It Works */}
-            <section className='px-4 py-20 bg-gray-50'>
-                <div className='max-w-5xl mx-auto'>
-                    <h2 className='text-3xl font-bold text-center text-gray-900 mb-12'>How It Works</h2>
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
-                        
-                        <div className='text-center'>
-                            <div className='bg-blue-600 text-white text-2xl font-bold w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center'>1</div>
-                            <h3 className='text-lg font-bold text-gray-900 mb-2'>Sign Up</h3>
-                            <p className='text-gray-600'>Create your profile as a traveler or guide</p>
+            <section className='px-6 py-16 sm:px-8 sm:py-20 bg-blue-100'>
+                <div className='relative isolate mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-[#252a40] px-7 py-10 text-white sm:px-10 sm:py-12 lg:px-14 lg:py-14'>
+                    <div className='grid gap-10 md:grid-cols-[1fr_auto] md:items-center'>
+                        <div className='max-w-2xl'>
+                            <p className='mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-blue-300'>
+                                Your journey, your way
+                            </p>
+                            <h2 className='text-3xl font-semibold leading-tight sm:text-4xl'>
+                                Come explore—or show someone around.
+                            </h2>
+                            <p className='mt-4 max-w-xl leading-7 text-gray-300'>
+                                Find a local perspective for your next trip, or share the place you call home.
+                            </p>
                         </div>
-
-                        <div className='text-center'>
-                            <div className='bg-blue-600 text-white text-2xl font-bold w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center'>2</div>
-                            <h3 className='text-lg font-bold text-gray-900 mb-2'>Connect</h3>
-                            <p className='text-gray-600'>Browse and match with compatible travelers or guides</p>
-                        </div>
-
-                        <div className='text-center'>
-                            <div className='bg-blue-600 text-white text-2xl font-bold w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center'>3</div>
-                            <h3 className='text-lg font-bold text-gray-900 mb-2'>Explore</h3>
-                            <p className='text-gray-600'>Start your adventure and create memories together</p>
+                        <div className='flex flex-col gap-3 sm:flex-row md:flex-col'>
+                            <button
+                                onClick={() => navigate('/search')}
+                                className='inline-flex items-center justify-center gap-3 whitespace-nowrap rounded-xl bg-white px-6 py-3.5 font-semibold text-[#252a40] transition hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
+                            >
+                                Find experiences <span aria-hidden='true'>→</span>
+                            </button>
+                            <button
+                                onClick={() => navigate('/provider-registration')}
+                                className='inline-flex items-center justify-center gap-3 whitespace-nowrap rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white transition hover:border-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
+                            >
+                                Become a guide <span aria-hidden='true'>→</span>
+                            </button>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            {/* CTA Section */}
-            <section className='px-4 py-20 bg-blue-600'>
-                <div className='max-w-2xl mx-auto text-center'>
-                    <h2 className='text-3xl font-bold text-white mb-6'>Ready to Start Your Journey?</h2>
-                    <p className='text-blue-100 mb-8 text-lg'>Join thousands of travelers and guides discovering the world together</p>
-                    <button
-                        onClick={() => navigate('/sign-up')}
-                        className='bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition'
-                    >
-                        Sign Up Now
-                    </button>
                 </div>
             </section>
 
             <Footer />
         </div>
     )
-}
+}   
