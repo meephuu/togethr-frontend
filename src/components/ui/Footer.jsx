@@ -12,26 +12,23 @@ export default function Footer() {
                         <p className='text-gray-400'>Connect with travelers and guides worldwide</p>
                     </div>
                     <div>
-                        <h4 className='font-bold mb-4'>Product</h4>
+                        <h4 className='font-bold mb-4'>Explore</h4>
                         <ul className='text-gray-400 space-y-2'>
-                            <li><button className='hover:text-white'>Features</button></li>
-                            <li><button className='hover:text-white'>Pricing</button></li>
-                            <li><button className='hover:text-white'>Blog</button></li>
+                            <li><button onClick={() => navigate('/provider-registration')} className='hover:text-white'>Become a guide</button></li>
+                            <li><button onClick={() => navigate('/search')} className='hover:text-white'>Find experiences</button></li>
                         </ul>
                     </div>
                     <div>
-                        <h4 className='font-bold mb-4'>Company</h4>
+                        <h4 className='font-bold mb-4'>Account</h4>
                         <ul className='text-gray-400 space-y-2'>
-                            <li><button className='hover:text-white'>About Us</button></li>
-                            <li><button className='hover:text-white'>Contact</button></li>
-                            <li><button className='hover:text-white'>Careers</button></li>
+                            <li><button onClick={() => navigate('/login')} className='hover:text-white'>Sign in</button></li>
+                            <li><button onClick={() => navigate('/sign-up')} className='hover:text-white'>Create an account</button></li>
                         </ul>
                     </div>
                     <div>
                         <h4 className='font-bold mb-4'>Legal</h4>
                         <ul className='text-gray-400 space-y-2'>
                             <li><button onClick={() => navigate('/privacy-policy')} className='hover:text-white'>Privacy</button></li>
-                            <li><button className='hover:text-white'>Terms</button></li>
                         </ul>
                     </div>
                 </div>
