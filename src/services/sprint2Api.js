@@ -328,3 +328,88 @@ export async function cancelBooking(bookingId) {
         path: { id: bookingId },
     });
 }
+
+// ---------------------------------------------------------------------------
+// US4-3: edit or unpublish a service
+// ---------------------------------------------------------------------------
+
+/**
+ * One of the signed-in provider's own services, for the edit page. Unlike
+ * GET /api/services/:id it also returns unpublished services and the counts the
+ * page needs. GET /api/providers/me/services/:id
+ * → { service: Service & { description, categoryIds, pendingRequestCount, confirmedBookingCount } }
+ * - 403 when it belongs to another provider; 404 when it doesn't exist
+ * @param {string} id
+ */
+export async function getMyService(id) {
+    if (USE_MOCKS) return mocks.getMyService(id);
+    const { service } = await request(OpenAPI, {
+        method: "GET",
+        url: "/providers/me/services/{id}",
+        path: { id },
+    });
+    return service;
+}
+
+/**
+ * Saves the edit form. A new cover photo (a File) is uploaded first, the same
+ * way createService does it; otherwise the current coverPhotoUrl is kept.
+ * PUT /api/services/:id (JSON, same fields as POST /api/services)
+ * - 200 { service }. The new rate is used for bookings made from now on;
+ *   confirmed bookings keep the price they were booked at (US4-3).
+ * - 400 { error, errors: { field: message } }; 403 not your service; 404
+ * @param {string} id
+ * @param {NewService & { coverPhotoUrl: string|null }} values
+ * @returns {Promise<{ service: Service }>}
+ */
+export async function updateService(id, values) {
+    if (USE_MOCKS) return mocks.updateService(id, values);
+
+    let coverPhotoUrl = values.coverPhotoUrl ?? null;
+    if (values.coverPhoto instanceof File) {
+        const upload = await request(OpenAPI, {
+            method: "POST",
+            url: "/upload",
+            formData: { image: values.coverPhoto },
+        });
+        coverPhotoUrl = upload.url;
+    }
+
+    return request(OpenAPI, {
+        method: "PUT",
+        url: "/services/{id}",
+        path: { id },
+        mediaType: "application/json",
+        body: {
+            title: values.title,
+            description: values.description,
+            location: values.location,
+            rate: Number(values.rate),
+            rateUnit: values.rateUnit,
+            startTime: values.startTime,
+            endTime: values.endTime,
+            categoryIds: values.categoryIds,
+            coverPhotoUrl,
+        },
+    });
+}
+
+/**
+ * Publishes or unpublishes a service.
+ * PATCH /api/services/:id/status { status: "PUBLISHED" | "UNPUBLISHED" }
+ * - 200 { service: { id, status } }
+ * - 409 { error: "Please respond to pending requests first", pendingRequests: [...] }
+ *   when unpublishing a service that still has WAITING_FOR_CONFIRMATION bookings
+ * @param {string} id
+ * @param {"PUBLISHED"|"UNPUBLISHED"} status
+ */
+export async function setServiceStatus(id, status) {
+    if (USE_MOCKS) return mocks.setServiceStatus(id, status);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/services/{id}/status",
+        path: { id },
+        mediaType: "application/json",
+        body: { status },
+    });
+}

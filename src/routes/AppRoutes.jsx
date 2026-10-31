@@ -16,6 +16,7 @@ import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import MyBookingsPage from "../pages/customer/MyBookingsPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
+import EditServicePage from "../pages/provider/EditServicePage";
 import MyServicesPage from "../pages/provider/MyServicesPage";
 import BookingRequestsPage from "../pages/provider/BookingRequestsPage";
 import ServiceDetailPage from "../pages/public/ServiceDetailPage";
@@ -86,6 +87,10 @@ export default function AppRoutes() {
                     <Route
                         path="/provider/services/new"
                         element={<CreateServicePage />}
+                    />
+                    <Route
+                        path="/provider/services/:id/edit"
+                        element={<EditServicePage />}
                     />
                     <Route
                         path="/provider/booking-requests"

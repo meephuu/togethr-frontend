@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
 import ComingSoon from "../../components/ui/ComingSoon";
+import Toast from "../../components/ui/Toast";
 import { AlertCircleIcon, BriefcaseIcon, PlusIcon } from "../../components/ui/Icons";
 import ServiceStatusPill from "../../components/services/ServiceStatusPill";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
@@ -17,7 +18,7 @@ const COLUMNS = [
     { label: "Rate", className: "w-40" },
     { label: "Status", className: "w-40" },
     { label: "Bookings this month", className: "w-48" },
-    { label: "Actions", className: "w-48 text-right" },
+    { label: "Actions", className: "w-64 text-right" },
 ];
 
 const CELL_CLASS = "px-6 py-4 align-middle";
@@ -72,6 +73,12 @@ function ServicesTable({ services, onAvailability }) {
                                 <td className={`${CELL_CLASS} text-right text-sm font-semibold`}>
                                     <div className="flex justify-end gap-5">
                                         <ComingSoon>View</ComingSoon>
+                                        <Link
+                                            to={`/provider/services/${service.id}/edit`}
+                                            className="font-semibold text-primary hover:text-primary-hover hover:underline"
+                                        >
+                                            Edit
+                                        </Link>
                                         <button
                                             type="button"
                                             onClick={() => onAvailability(service)}
@@ -168,6 +175,13 @@ export default function MyServicesPage() {
     const [result, setResult] = useState({ status: "loading", services: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
     const [availabilityService, setAvailabilityService] = useState(null);
+    // Set by EditServicePage after a save (US4-3)
+    const [savedService, setSavedService] = useState(location.state?.savedService ?? null);
+
+    useEffect(() => {
+        // Clear the router state so a reload doesn't show the toast again.
+        if (location.state?.savedService) navigate(location.pathname, { replace: true, state: null });
+    }, [location.pathname, location.state, navigate]);
 
     useEffect(() => {
         let cancelled = false;
@@ -231,6 +245,18 @@ export default function MyServicesPage() {
                         longer available”.
                     </p>
                 </>
+            )}
+
+            {savedService && (
+                <Toast title={`Changes saved to “${savedService.title}”`} onDismiss={() => setSavedService(null)}>
+                    {savedService.rateChanged && (
+                        <p className="text-text-muted">
+                            New bookings are {formatBaht(savedService.newRate)} / {RATE_UNIT_LABEL[savedService.newRateUnit]}.
+                            {savedService.confirmedCount > 0 &&
+                                ` Confirmed bookings stay at ${formatBaht(savedService.oldRate)} / ${RATE_UNIT_LABEL[savedService.oldRateUnit]}.`}
+                        </p>
+                    )}
+                </Toast>
             )}
 
             {availabilityService && (
