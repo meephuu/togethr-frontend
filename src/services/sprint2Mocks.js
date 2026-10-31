@@ -510,3 +510,84 @@ export async function cancelBooking(bookingId) {
     item.bookingStatus = "CANCELLED";
     return { booking: { id: item.id, bookingStatus: "CANCELLED" } };
 }
+
+// ---------------------------------------------------------------------------
+// Edit / unpublish a service (US4-3). Changes stick until reload.
+// ---------------------------------------------------------------------------
+
+const MOCK_PENDING_REQUEST = {
+    id: "BK-1003",
+    customerName: "Nok P.",
+    appointmentDate: mockDateFromToday(8),
+    startTime: "09:00",
+    endTime: "12:00",
+};
+
+export async function getMyService(id) {
+    await wait();
+    const service = myServices.find((candidate) => candidate.id === id);
+    if (!service) throw httpError("GET", `/api/providers/me/services/${id}`, 404, "Not Found", { error: "Service not found." });
+
+    const pending = getMockScenario("unpublishService") === "pending";
+    return {
+        description: "We'll walk Yaowarat together and try 5 local stalls.",
+        categoryIds: [CATEGORIES[0].id],
+        ...service,
+        pendingRequestCount: pending ? 1 : 0,
+        confirmedBookingCount: 2,
+    };
+}
+
+export async function updateService(id, values) {
+    await wait(1000);
+    const url = `/api/services/${id}`;
+
+    switch (getMockScenario("editService")) {
+        case "validation":
+            throw httpError("PUT", url, 400, "Bad Request", {
+                errors: { rate: "rate must be greater than 0" },
+            });
+        case "network":
+            throw networkError();
+        default: {
+            const service = myServices.find((candidate) => candidate.id === id);
+            if (!service) throw httpError("PUT", url, 404, "Not Found", { error: "Service not found." });
+            Object.assign(service, {
+                title: values.title,
+                description: values.description,
+                location: values.location,
+                rate: Number(values.rate),
+                rateUnit: values.rateUnit,
+                startTime: values.startTime,
+                endTime: values.endTime,
+                categoryIds: values.categoryIds,
+                coverPhotoUrl: values.coverPhoto instanceof File ? URL.createObjectURL(values.coverPhoto) : values.coverPhotoUrl,
+            });
+            return { service: { ...service } };
+        }
+    }
+}
+
+export async function setServiceStatus(id, status) {
+    await wait();
+    const url = `/api/services/${id}/status`;
+
+    if (status === "UNPUBLISHED") {
+        switch (getMockScenario("unpublishService")) {
+            case "pending":
+                throw httpError("PATCH", url, 409, "Conflict", {
+                    error: "Please respond to pending requests first",
+                    pendingRequests: [MOCK_PENDING_REQUEST],
+                });
+            case "network":
+                throw networkError();
+            default:
+                break;
+        }
+    }
+
+    const service = myServices.find((candidate) => candidate.id === id);
+    if (!service) throw httpError("PATCH", url, 404, "Not Found", { error: "Service not found." });
+    service.status = status;
+    return { service: { id, status } };
+}

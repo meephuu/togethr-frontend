@@ -68,6 +68,22 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    editService: {
+        label: "Save service changes",
+        options: {
+            success: "Success (200)",
+            validation: "Validation errors (400)",
+            network: "Network error",
+        },
+    },
+    unpublishService: {
+        label: "Unpublish service",
+        options: {
+            success: "No pending requests (200)",
+            pending: "Has a pending request (409)",
+            network: "Network error",
+        },
+    },
     availability: {
         label: "Availability",
         options: {
