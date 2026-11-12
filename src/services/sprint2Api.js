@@ -295,6 +295,8 @@ export async function updateBookingStatus(bookingId, status) {
  * @property {number|null} totalPrice
  * @property {string} startsAt ISO time the booking begins
  * @property {boolean} canCancel confirmed and not started yet
+ * @property {{ rating: number, comment: string|null, timestamp: string }|null} review
+ *   the customer's review of a completed booking, null until they write one
  * @property {{ id: string, title: string, location: string, coverPhotoUrl: string|null }} service
  * @property {{ id: string, firstname: string, lastname: string, profilePhotoUrl: string|null }} provider
  */
@@ -326,5 +328,25 @@ export async function cancelBooking(bookingId) {
         method: "PATCH",
         url: "/bookings/{id}/cancel",
         path: { id: bookingId },
+    });
+}
+
+/**
+ * The customer rates and reviews the provider of a completed booking (US8-1).
+ * POST /api/reviews { bookingId, rating 1-5, comment? (max 1000 chars) }
+ * - 201 { review, provider: { id, avgRating, reviewCount } }
+ * - 409 when this booking already has a review
+ * - 400 when the booking isn't completed or the input is invalid
+ * - 403 for anyone but the booking's customer; 404 when it doesn't exist
+ * @param {{ bookingId: string, rating: number, comment?: string }} values
+ * @returns {Promise<{ review: { id: string, bookingId: string, rating: number, comment: string|null, timestamp: string }, provider: Object }>}
+ */
+export async function createReview(values) {
+    if (USE_MOCKS) return mocks.createReview(values);
+    return request(OpenAPI, {
+        method: "POST",
+        url: "/reviews",
+        body: values,
+        mediaType: "application/json",
     });
 }
