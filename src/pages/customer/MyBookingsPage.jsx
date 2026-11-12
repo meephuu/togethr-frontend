@@ -9,7 +9,7 @@ import ServiceThumbnail from "../../components/services/ServiceThumbnail";
 import CancelBookingDialog from "../../components/booking/CancelBookingDialog";
 import ReviewBookingDialog from "../../components/review/ReviewBookingDialog";
 import { StarRatingDisplay } from "../../components/review/StarRatingInput";
-import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon, StarFilledIcon } from "../../components/ui/Icons";
+import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon, MessageIcon, StarFilledIcon } from "../../components/ui/Icons";
 import { formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 import { getMyBookings } from "../../services/sprint2Api";
@@ -78,6 +78,7 @@ function BookingItem({ item, onCancel, onReview }) {
     // The server only allows cancelling a confirmed booking before it starts
     const started = item.bookingStatus === "CONFIRMED" && !item.canCancel;
     const canReview = item.bookingStatus === "COMPLETED" && !item.review;
+    const hasChat = item.bookingStatus === "CONFIRMED" || item.bookingStatus === "COMPLETED";
     const pill = started
         ? STARTED_PILL
         : STATUS_PILL[item.bookingStatus] ?? { label: item.bookingStatus, className: "bg-gray-100 text-text-muted" };
@@ -120,6 +121,15 @@ function BookingItem({ item, onCancel, onReview }) {
                 )}
                 {item.bookingStatus === "WAITING_FOR_CONFIRMATION" && (
                     <p className="text-sm text-text-muted md:text-right">The provider has 24 hours to answer.</p>
+                )}
+                {hasChat && (
+                    <Link
+                        to={`/bookings/${item.id}/chat`}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-white hover:bg-primary-hover md:w-auto"
+                    >
+                        <MessageIcon size={16} />
+                        {item.bookingStatus === "CONFIRMED" ? "Chat with provider" : "View chat"}
+                    </Link>
                 )}
                 {item.canCancel && (
                     <Button variant="secondary" className="w-full md:w-auto" onClick={() => onCancel(item)}>
