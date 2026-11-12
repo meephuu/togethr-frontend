@@ -1,16 +1,18 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Button from "../ui/Button";
 import { UploadIcon } from "../ui/Icons";
+import useFileDrop from "../../hooks/useFileDrop";
 import { CARD_CLASS } from "../../lib/styles";
 import { formatFileSize } from "../../lib/format";
 import { COVER_PHOTO_ACCEPT } from "../../lib/serviceValidation";
 
-// Drop zone + browse for the cover photo. The parent checks the file
-// (type/size) in onSelect and owns the preview URL.
+// Drop zone + browse for the cover photo. Dropping onto the preview replaces
+// the photo. The parent checks the file (type/size) in onSelect and owns the
+// preview URL.
 export default function CoverPhotoPicker({ file, previewUrl, error, onSelect, onRemove }) {
     const inputRef = useRef(null);
     const dropZoneRef = useRef(null);
-    const [isDragging, setIsDragging] = useState(false);
+    const { isDragging, dropProps } = useFileDrop({ onFile: onSelect });
 
     const openPicker = () => inputRef.current?.click();
 
@@ -55,11 +57,22 @@ export default function CoverPhotoPicker({ file, previewUrl, error, onSelect, on
 
             {previewUrl ? (
                 <>
-                    <img
-                        src={previewUrl}
-                        alt="Cover photo preview"
-                        className="h-56 w-full rounded-xl bg-gray-100 object-cover sm:h-[360px]"
-                    />
+                    <div className="relative" {...dropProps}>
+                        <img
+                            src={previewUrl}
+                            alt="Cover photo preview"
+                            className="h-56 w-full rounded-xl bg-gray-100 object-cover sm:h-[360px]"
+                        />
+                        {isDragging && (
+                            <div
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary bg-secondary/85 px-4 text-center text-text-main"
+                            >
+                                <UploadIcon size={40} />
+                                <span className="text-base">Drop to replace the photo</span>
+                            </div>
+                        )}
+                    </div>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="break-all text-sm text-text-muted">
                             {/* No file when editing: the preview is the photo already saved. */}
@@ -84,16 +97,7 @@ export default function CoverPhotoPicker({ file, previewUrl, error, onSelect, on
                     ref={dropZoneRef}
                     type="button"
                     onClick={openPicker}
-                    onDragOver={(e) => {
-                        e.preventDefault();
-                        setIsDragging(true);
-                    }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={(e) => {
-                        e.preventDefault();
-                        setIsDragging(false);
-                        handleFiles(e.dataTransfer.files);
-                    }}
+                    {...dropProps}
                     aria-describedby={error ? "cover-photo-error" : undefined}
                     className={`flex h-56 w-full flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-4 text-center text-text-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary sm:h-[360px] ${dropZoneState}`}
                 >

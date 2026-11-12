@@ -28,6 +28,7 @@ export type { ProviderProfile } from './models/ProviderProfile';
 export type { ProviderRegistrationDetails } from './models/ProviderRegistrationDetails';
 export type { PublicProfileResponse } from './models/PublicProfileResponse';
 export type { PublicProviderProfile } from './models/PublicProviderProfile';
+export type { PublicReview } from './models/PublicReview';
 export type { PublicUserProfile } from './models/PublicUserProfile';
 export type { RegisteredProviderUser } from './models/RegisteredProviderUser';
 export type { RegisteredUser } from './models/RegisteredUser';
@@ -36,6 +37,7 @@ export type { RegisterProviderResponse } from './models/RegisterProviderResponse
 export type { RegisterRequest } from './models/RegisterRequest';
 export type { RegisterResponse } from './models/RegisterResponse';
 export type { ResetPasswordRequest } from './models/ResetPasswordRequest';
+export type { ServiceCard } from './models/ServiceCard';
 export type { UpdateProfileRequest } from './models/UpdateProfileRequest';
 export type { UserProfile } from './models/UserProfile';
 export { UserRole } from './models/UserRole';

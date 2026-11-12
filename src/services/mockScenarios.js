@@ -84,6 +84,14 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    createReview: {
+        label: "Submit review",
+        options: {
+            success: "Success (201)",
+            already: "Already reviewed (409)",
+            network: "Network error",
+        },
+    },
     availability: {
         label: "Availability",
         options: {

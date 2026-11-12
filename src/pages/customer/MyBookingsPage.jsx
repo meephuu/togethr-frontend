@@ -7,14 +7,17 @@ import Button from "../../components/ui/Button";
 import Toast from "../../components/ui/Toast";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
 import CancelBookingDialog from "../../components/booking/CancelBookingDialog";
-import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon } from "../../components/ui/Icons";
+import ReviewBookingDialog from "../../components/review/ReviewBookingDialog";
+import { StarRatingDisplay } from "../../components/review/StarRatingInput";
+import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon, StarFilledIcon } from "../../components/ui/Icons";
 import { formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 import { getMyBookings } from "../../services/sprint2Api";
 
 // Customer's "My bookings" page (US6-4): upcoming and past bookings, and the
-// entry point for cancelling a confirmed booking. Marking a trip complete
-// (US6-5) belongs on the same cards once its endpoint exists.
+// entry point for cancelling a confirmed booking and for reviewing a completed
+// one (US8-1). Marking a trip complete (US6-5) belongs on the same cards once
+// its endpoint exists.
 
 const STATUS_PILL = {
     WAITING_FOR_CONFIRMATION: { label: "Waiting for confirmation", className: "bg-amber-50 text-amber-800" },
@@ -60,12 +63,21 @@ function markCancelled(lists, id) {
     };
 }
 
+// Puts the customer's review on a past booking, once it's saved
+function markReviewed(lists, id, review) {
+    return {
+        ...lists,
+        past: lists.past.map((b) => (b.id === id ? { ...b, review } : b)),
+    };
+}
+
 // ---------- one booking ----------
 
-function BookingItem({ item, onCancel }) {
+function BookingItem({ item, onCancel, onReview }) {
     const { service, provider } = item;
     // The server only allows cancelling a confirmed booking before it starts
     const started = item.bookingStatus === "CONFIRMED" && !item.canCancel;
+    const canReview = item.bookingStatus === "COMPLETED" && !item.review;
     const pill = started
         ? STARTED_PILL
         : STATUS_PILL[item.bookingStatus] ?? { label: item.bookingStatus, className: "bg-gray-100 text-text-muted" };
@@ -114,6 +126,26 @@ function BookingItem({ item, onCancel }) {
                         Cancel booking
                     </Button>
                 )}
+                {canReview && (
+                    <Button
+                        className="w-full md:w-auto"
+                        leftIcon={<StarFilledIcon size={16} />}
+                        onClick={() => onReview(item)}
+                    >
+                        Write a review
+                    </Button>
+                )}
+                {item.review && (
+                    <div className="flex flex-col gap-1 md:items-end">
+                        <span className="text-xs font-medium text-text-muted">You rated</span>
+                        <StarRatingDisplay value={item.review.rating} />
+                        {item.review.comment && (
+                            <p className="line-clamp-2 text-sm italic text-text-muted md:text-right">
+                                “{item.review.comment}”
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
         </li>
     );
@@ -158,6 +190,7 @@ export default function MyBookingsPage() {
     const [reloadKey, setReloadKey] = useState(0);
     const [tab, setTab] = useState("upcoming");
     const [cancelling, setCancelling] = useState(null); // the booking whose dialog is open
+    const [reviewing, setReviewing] = useState(null); // the booking being reviewed
     const [toast, setToast] = useState(null);
     const [notice, setNotice] = useState(null); // page-level message, e.g. a cancel the server refused
 
@@ -189,6 +222,24 @@ export default function MyBookingsPage() {
             title: "Booking cancelled",
             text: `${item.provider.firstname} has been told. You'll find it under Past.`,
         });
+    }
+
+    function handleReviewed(review) {
+        const item = reviewing;
+        setReviewing(null);
+        setNotice(null);
+        setResult((prev) => ({ ...prev, ...markReviewed(prev, item.id, review) }));
+        setToast({
+            title: "Thanks for your review",
+            text: `It's now on ${item.provider.firstname}'s profile for other travellers to see.`,
+        });
+    }
+
+    // The booking already had a review (e.g. sent from another tab): show why and reload
+    function handleAlreadyReviewed(message) {
+        setReviewing(null);
+        setNotice(message);
+        reload();
     }
 
     // The booking changed on the server (e.g. it just started): show why and reload
@@ -262,7 +313,7 @@ export default function MyBookingsPage() {
             {result.status === "ready" && visible.length > 0 && (
                 <ul className="flex flex-col gap-4">
                     {visible.map((item) => (
-                        <BookingItem key={item.id} item={item} onCancel={setCancelling} />
+                        <BookingItem key={item.id} item={item} onCancel={setCancelling} onReview={setReviewing} />
                     ))}
                 </ul>
             )}
@@ -273,6 +324,15 @@ export default function MyBookingsPage() {
                     onClose={() => setCancelling(null)}
                     onCancelled={handleCancelled}
                     onConflict={handleConflict}
+                />
+            )}
+
+            {reviewing && (
+                <ReviewBookingDialog
+                    booking={reviewing}
+                    onClose={() => setReviewing(null)}
+                    onReviewed={handleReviewed}
+                    onAlreadyReviewed={handleAlreadyReviewed}
                 />
             )}
 

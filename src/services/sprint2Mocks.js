@@ -287,7 +287,7 @@ const SEARCH_SERVICES = [
     ...service,
     rateUnit: "hour",
     coverPhotoUrl: null,
-    provider: { firstname, lastname, avgRating, profilePhotoUrl: null },
+    provider: { id: `provider-${firstname.toLowerCase()}`, firstname, lastname, avgRating, profilePhotoUrl: null },
 }));
 
 const SORTERS = {
@@ -347,6 +347,7 @@ export async function getServiceById(id) {
     const { gender, age, ...rest } = service; // eslint-disable-line no-unused-vars
     return {
         ...rest,
+        providerId: `provider-${rest.provider.firstname.toLowerCase()}`,
         description: "A sample service from the mock data. Turn mocks off to see real services.",
         startTime: "09:00",
         endTime: "17:00",
@@ -464,6 +465,12 @@ const myBookings = [
     mockBooking("bk-3", "CONFIRMED", 12, null, null, { totalPrice: 2200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
     mockBooking("bk-4", "COMPLETED", -9, "09:00", "11:00", { totalPrice: 900, service: COVERLESS(OLD_TOWN), provider: MALI }),
     mockBooking("bk-5", "REJECTED", -2, "15:00", "17:00", { totalPrice: 1200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
+    mockBooking("bk-6", "COMPLETED", -20, "06:00", "08:00", {
+        totalPrice: 1200,
+        service: COVERLESS(TEMPLE),
+        provider: ARTHIT,
+        review: { rating: 4, comment: "Great photo spots, a bit rushed at the end.", timestamp: new Date().toISOString() },
+    }),
 ];
 
 const isUpcoming = (item) =>
@@ -480,6 +487,7 @@ export async function getMyBookings() {
             const items = myBookings.map((item) => ({
                 ...item,
                 canCancel: item.bookingStatus === "CONFIRMED" && isUpcoming(item),
+                review: item.review ?? null,
             }));
             return {
                 upcoming: items.filter(isUpcoming).sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
@@ -590,4 +598,34 @@ export async function setServiceStatus(id, status) {
     if (!service) throw httpError("PATCH", url, 404, "Not Found", { error: "Service not found." });
     service.status = status;
     return { service: { id, status } };
+}
+
+// US8-1. Reviews made through the mock stick until reload.
+export async function createReview({ bookingId, rating, comment }) {
+    await wait(600);
+    const url = "/api/reviews";
+    const item = myBookings.find((candidate) => candidate.id === bookingId);
+    if (!item) throw httpError("POST", url, 404, "Not Found", { error: "Booking not found." });
+
+    switch (getMockScenario("createReview")) {
+        case "already":
+            throw httpError("POST", url, 409, "Conflict", { error: "You have already reviewed this booking." });
+        case "network":
+            throw networkError();
+        default:
+    }
+    if (item.bookingStatus !== "COMPLETED") {
+        throw httpError("POST", url, 400, "Bad Request", { error: "You can review a booking only after it is completed" });
+    }
+    if (item.review) throw httpError("POST", url, 409, "Conflict", { error: "You have already reviewed this booking." });
+
+    const review = {
+        id: `rv-${bookingId}`,
+        bookingId,
+        rating,
+        comment: comment || null,
+        timestamp: new Date().toISOString(),
+    };
+    item.review = { rating: review.rating, comment: review.comment, timestamp: review.timestamp };
+    return { review, provider: { id: item.provider.id, avgRating: rating, reviewCount: 1 } };
 }

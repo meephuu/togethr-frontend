@@ -170,8 +170,8 @@ function EmptyState({ onCreate }) {
 }
 
 export default function MyServicesPage() {
-    const navigate = useNavigate();
     const location = useLocation();
+    const navigate = useNavigate();
     const [result, setResult] = useState({ status: "loading", services: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
     const [availabilityService, setAvailabilityService] = useState(null);
