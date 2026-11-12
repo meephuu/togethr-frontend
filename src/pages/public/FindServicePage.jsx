@@ -103,7 +103,7 @@ export default function FindServicePage() {
             <div className="mx-auto w-full max-w-7xl">
                 {/* Search Bar */}
                 <form onSubmit={handleSearch} className="mb-8 flex w-full items-stretch gap-4">
-                    <div className="flex flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+                    <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-5 w-5 text-gray-500 shrink-0"
@@ -119,7 +119,7 @@ export default function FindServicePage() {
                             name="q"
                             defaultValue={query}
                             placeholder="food"
-                            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-gray-500"
+                            className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-gray-500"
                         />
                     </div>
                     <Button type="submit" className="px-8 py-3 font-semibold rounded-lg">Search</Button>
