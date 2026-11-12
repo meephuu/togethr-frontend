@@ -8,6 +8,8 @@ import {
     markNotificationRead,
 } from "../../services/sprint2Api";
 
+const NOTIFICATION_REFRESH_INTERVAL_MS = 15_000;
+
 function formatNotificationTime(value) {
     const elapsedSeconds = (new Date(value).getTime() - Date.now()) / 1000;
     if (!Number.isFinite(elapsedSeconds)) return "";
@@ -41,6 +43,7 @@ export default function NotificationBell() {
         notifications: [],
     });
     const [actionError, setActionError] = useState("");
+    const [refreshError, setRefreshError] = useState("");
     const [markingId, setMarkingId] = useState(null);
     const [isMarkingAll, setIsMarkingAll] = useState(false);
     const [reloadKey, setReloadKey] = useState(0);
@@ -49,21 +52,47 @@ export default function NotificationBell() {
         if (!user?.id) return undefined;
 
         let cancelled = false;
+        let requestInFlight = false;
 
-        getMyNotifications()
-            .then((items) => {
+        const refreshNotifications = async (showError = false) => {
+            if (requestInFlight || document.visibilityState === "hidden") return;
+
+            requestInFlight = true;
+            try {
+                const items = await getMyNotifications();
                 if (!cancelled) {
                     setLoadResult({ userId: user.id, reloadKey, status: "ready", notifications: items });
+                    setRefreshError("");
                 }
-            })
-            .catch(() => {
+            } catch {
                 if (!cancelled) {
-                    setLoadResult({ userId: user.id, reloadKey, status: "error", notifications: [] });
+                    if (showError) {
+                        setLoadResult({ userId: user.id, reloadKey, status: "error", notifications: [] });
+                    } else {
+                        setRefreshError("We couldn't refresh your notifications. We'll try again.");
+                    }
                 }
-            });
+            } finally {
+                requestInFlight = false;
+            }
+        };
 
+        const refreshWhenVisible = () => {
+            if (document.visibilityState === "visible") {
+                refreshNotifications();
+            }
+        };
+
+        refreshNotifications(true);
+        const refreshInterval = window.setInterval(
+            () => refreshNotifications(),
+            NOTIFICATION_REFRESH_INTERVAL_MS
+        );
+        document.addEventListener("visibilitychange", refreshWhenVisible);
         return () => {
             cancelled = true;
+            window.clearInterval(refreshInterval);
+            document.removeEventListener("visibilitychange", refreshWhenVisible);
         };
     }, [user?.id, reloadKey]);
 
@@ -213,6 +242,11 @@ export default function NotificationBell() {
                         </button>
                     </header>
 
+                    {!showSettings && refreshError && (
+                        <p role="alert" className="border-b border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {refreshError}
+                        </p>
+                    )}
                     {showSettings ? <NotificationEmailSettings key={user.id} /> : <div
                         className={isExpanded ? "max-h-[70vh] overflow-y-auto thin-scrollbar" : ""}
                     >
