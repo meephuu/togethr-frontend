@@ -14,6 +14,7 @@ import ProfileEditPage from "../pages/private/ProfileEditPage";
 import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import MyBookingsPage from "../pages/customer/MyBookingsPage";
+import ComplaintPage from "../pages/customer/ComplaintPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
 import MyServicesPage from "../pages/provider/MyServicesPage";
@@ -70,6 +71,10 @@ export default function AppRoutes() {
                     <Route
                         path="/customer/bookings"
                         element={<MyBookingsPage />}
+                    />
+                    <Route
+                        path="/customer/bookings/:bookingId/complaint"
+                        element={<ComplaintPage />}
                     />
                 </Route>
 

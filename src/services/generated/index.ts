@@ -13,6 +13,8 @@ export type { AddProviderProfileRequest } from './models/AddProviderProfileReque
 export type { AuthenticatedUser } from './models/AuthenticatedUser';
 export type { AuthUser } from './models/AuthUser';
 export type { BaseRegistrationFields } from './models/BaseRegistrationFields';
+export { Complaint } from './models/Complaint';
+export { ComplaintCategory } from './models/ComplaintCategory';
 export type { DeleteAccountRequest } from './models/DeleteAccountRequest';
 export type { DeleteAccountResponse } from './models/DeleteAccountResponse';
 export type { ErrorResponse } from './models/ErrorResponse';
@@ -43,4 +45,5 @@ export type { UserProfile } from './models/UserProfile';
 export { UserRole } from './models/UserRole';
 
 export { AuthService } from './services/AuthService';
+export { ComplaintsService } from './services/ComplaintsService';
 export { UsersService } from './services/UsersService';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import CustomerTabs from "../../components/customer/CustomerTabs";
 import Avatar from "../../components/ui/Avatar";
@@ -8,7 +8,7 @@ import Toast from "../../components/ui/Toast";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
 import CancelBookingDialog from "../../components/booking/CancelBookingDialog";
 import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon } from "../../components/ui/Icons";
-import { formatBaht } from "../../lib/format";
+import { formatBaht, formatBookingDate } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 import { getMyBookings } from "../../services/sprint2Api";
 
@@ -38,17 +38,6 @@ const EMPTY_TEXT = {
     past: "Finished, cancelled, rejected and expired bookings will show up here.",
 };
 
-// "YYYY-MM-DD" read as UTC so the day doesn't shift with the viewer's timezone
-function formatDate(date) {
-    return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        timeZone: "UTC",
-    });
-}
-
 // Moves a booking out of upcoming once cancelled, keeping past newest first
 function markCancelled(lists, id) {
     const item = lists.upcoming.find((b) => b.id === id);
@@ -62,7 +51,7 @@ function markCancelled(lists, id) {
 
 // ---------- one booking ----------
 
-function BookingItem({ item, onCancel }) {
+function BookingItem({ item, onCancel, tab }) {
     const { service, provider } = item;
     // The server only allows cancelling a confirmed booking before it starts
     const started = item.bookingStatus === "CONFIRMED" && !item.canCancel;
@@ -84,7 +73,7 @@ function BookingItem({ item, onCancel }) {
                     <ul className="flex flex-col gap-1.5 text-sm text-text-muted sm:flex-row sm:flex-wrap sm:gap-x-5">
                         <li className="flex items-center gap-1.5">
                             <CalendarIcon size={15} />
-                            {formatDate(item.appointmentDate)}
+                            {formatBookingDate(item.appointmentDate)}
                         </li>
                         <li className="flex items-center gap-1.5">
                             <ClockIcon size={15} />
@@ -114,6 +103,13 @@ function BookingItem({ item, onCancel }) {
                         Cancel booking
                     </Button>
                 )}
+                <Link
+                    to={`/customer/bookings/${encodeURIComponent(item.id)}/complaint`}
+                    state={{ tab }}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-medium text-primary hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                    Report an issue
+                </Link>
             </div>
         </li>
     );
@@ -154,9 +150,10 @@ function LoadError({ onRetry }) {
 // ---------- page ----------
 
 export default function MyBookingsPage() {
+    const { state } = useLocation();
     const [result, setResult] = useState({ status: "loading", upcoming: [], past: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
-    const [tab, setTab] = useState("upcoming");
+    const [tab, setTab] = useState(state?.tab === "past" ? "past" : "upcoming");
     const [cancelling, setCancelling] = useState(null); // the booking whose dialog is open
     const [toast, setToast] = useState(null);
     const [notice, setNotice] = useState(null); // page-level message, e.g. a cancel the server refused
@@ -210,7 +207,7 @@ export default function MyBookingsPage() {
                         {result.upcoming.length === 0
                             ? "Nothing coming up yet."
                             : nextConfirmed
-                              ? `Your next trip is ${nextConfirmed.service.title} on ${formatDate(nextConfirmed.appointmentDate)}.`
+                              ? `Your next trip is ${nextConfirmed.service.title} on ${formatBookingDate(nextConfirmed.appointmentDate)}.`
                               : "Your requests are waiting for the providers to answer."}{" "}
                         You can cancel a confirmed booking until it starts.
                     </p>
@@ -262,7 +259,7 @@ export default function MyBookingsPage() {
             {result.status === "ready" && visible.length > 0 && (
                 <ul className="flex flex-col gap-4">
                     {visible.map((item) => (
-                        <BookingItem key={item.id} item={item} onCancel={setCancelling} />
+                        <BookingItem key={item.id} item={item} onCancel={setCancelling} tab={tab} />
                     ))}
                 </ul>
             )}
