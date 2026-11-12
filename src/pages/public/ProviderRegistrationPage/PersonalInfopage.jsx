@@ -3,7 +3,7 @@ import Button from "../../../components/ui/Button";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function PersonalInfoPage({ formData, handleChange, onBack, onNext }) {
+export default function PersonalInfoPage({ formData, handleChange, onNext }) {
     const [errors, setErrors] = useState({});
 
     const validate = () => {
