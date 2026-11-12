@@ -12,6 +12,7 @@ import ServiceStatusPill from "../../components/services/ServiceStatusPill";
 import RateChangeDialog from "../../components/services/RateChangeDialog";
 import UnpublishDialog from "../../components/services/UnpublishDialog";
 import { useAuth } from "../../hooks/useAuth";
+import { assetUrl } from "../../lib/assets";
 import {
     ApiError,
     getCategories,
@@ -325,7 +326,7 @@ export default function EditServicePage() {
     };
 
     const describe = (fieldId, error) => (error ? `${fieldId}-error` : undefined);
-    const previewUrl = coverPreviewUrl ?? values.coverPhotoUrl;
+    const previewUrl = coverPreviewUrl ?? assetUrl(values.coverPhotoUrl);
 
     return (
         <PageShell subnav={<ProviderTabs />}>
