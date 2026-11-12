@@ -146,7 +146,7 @@ export default function PrivacyPolicyContent() {
                     </li>
                     <li>
                         <span className="font-semibold text-text-main">Withdraw consent</span> previously given, at any
-                        time
+                        time, by deleting your account
                     </li>
                     <li>
                         <span className="font-semibold text-text-main">Erasure</span> — request deletion of your account
@@ -161,8 +161,7 @@ export default function PrivacyPolicyContent() {
                     </li>
                 </ul>
                 <p>
-                    You may exercise these rights through your account settings, or by contacting us using the details
-                    in Section 9.
+                    You may exercise these rights through your account settings, as described in Section 9.
                 </p>
             </Section>
 
@@ -173,13 +172,11 @@ export default function PrivacyPolicyContent() {
                 </p>
             </Section>
 
-            <Section number={9} title="Contact Us">
-                <p>For questions about this policy or to exercise your rights, contact:</p>
-                <ul className="list-disc list-inside space-y-1">
-                    <li>Email: [insert contact email]</li>
-                    <li>Data Protection Officer: [insert name/role, if designated]</li>
-                    <li>Through the in-app Report system</li>
-                </ul>
+            <Section number={9} title="Managing Your Information">
+                <p>
+                    You can manage your information and exercise your rights through your account settings, such as
+                    editing your profile or deleting your account.
+                </p>
             </Section>
 
             <Section number={10} title="Changes to This Policy">
