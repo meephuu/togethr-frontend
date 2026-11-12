@@ -28,6 +28,15 @@ export function getBookingMessages(bookingId) {
     });
 }
 
+export function sendBookingPhoto(bookingId, image, content = "") {
+    return request(OpenAPI, {
+        method: "POST",
+        url: "/bookings/{id}/messages/image",
+        path: { id: bookingId },
+        formData: { image, content },
+    });
+}
+
 /**
  * Opens a socket authenticated by the login cookie. Call `.disconnect()` when done.
  * Events: emit "chat:join" { bookingId } and "chat:message" { bookingId, content },

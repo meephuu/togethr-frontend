@@ -6,7 +6,8 @@ import Button from "../../components/ui/Button";
 import { AlertCircleIcon, CalendarIcon, ChevronLeftIcon, ClockIcon, SendIcon } from "../../components/ui/Icons";
 import { CARD_CLASS } from "../../lib/styles";
 import { useAuth } from "../../hooks/useAuth";
-import { ApiError, connectChat, emitWithAck, getBookingMessages } from "../../services/chatApi";
+import { ApiError, connectChat, emitWithAck, getBookingMessages, sendBookingPhoto } from "../../services/chatApi";
+import { assetUrl } from "../../lib/assets";
 
 // Booking chat (US7-1): the customer and provider of a confirmed booking talk
 // about the trip. History comes from REST; new messages arrive over Socket.IO.
@@ -99,7 +100,12 @@ function MessageList({ messages, myId, endRef }) {
                                     mine ? "rounded-br-md bg-primary text-white" : "rounded-bl-md bg-gray-100 text-text-main"
                                 }`}
                             >
-                                {m.content}
+                                {m.imageUrl && (
+                                    <a href={assetUrl(m.imageUrl)} target="_blank" rel="noreferrer" aria-label="Open shared photo">
+                                        <img src={assetUrl(m.imageUrl)} alt="Shared trip photo" className="max-h-64 max-w-full rounded-lg object-contain" />
+                                    </a>
+                                )}
+                                {m.content && <p className={m.imageUrl ? "mt-2" : ""}>{m.content}</p>}
                             </div>
                             <time dateTime={m.timestamp} className="mt-1 text-[11px] text-text-muted">
                                 {formatTime(m.timestamp)}
@@ -117,52 +123,90 @@ function Composer({ disabled, onSend }) {
     const [text, setText] = useState("");
     const [sending, setSending] = useState(false);
     const [error, setError] = useState(null);
+    const [photo, setPhoto] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const fileRef = useRef(null);
+
+    useEffect(() => {
+        return () => { if (preview) URL.revokeObjectURL(preview); };
+    }, [preview]);
+
+    function choosePhoto(e) {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        if (!["image/jpeg", "image/png"].includes(file.type)) {
+            setError("Choose a JPG or PNG image.");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setError("Photo must be 5 MB or smaller.");
+            return;
+        }
+        setError(null);
+        setPhoto(file);
+        setPreview(URL.createObjectURL(file));
+    }
 
     async function submit(e) {
         e?.preventDefault();
         const content = text.trim();
-        if (!content || sending || disabled) return;
+        if ((!content && !photo) || sending || disabled) return;
         setSending(true);
         setError(null);
-        const ack = await onSend(content);
-        setSending(false);
-        if (ack.ok) setText("");
-        else setError(ack.error || "Couldn't send. Try again.");
+        try {
+            const ack = await onSend(content, photo);
+            if (ack.ok) { setText(""); setPhoto(null); setPreview(null); }
+            else setError(ack.error || "Couldn't send. Try again.");
+        } catch (err) {
+            setError(err.body?.error || "Couldn't send the photo. Try again.");
+        } finally {
+            setSending(false);
+        }
     }
 
     return (
         <form onSubmit={submit} className="border-t border-gray-100 p-3 sm:p-4">
+            {photo && preview && (
+                <div className="mb-3 flex items-center gap-3">
+                    <img src={preview} alt="Photo ready to send" className="h-20 w-20 rounded-lg object-cover" />
+                    <span className="min-w-0 flex-1 truncate text-sm text-text-muted">{photo.name}</span>
+                    <button type="button" disabled={sending} onClick={() => { setPhoto(null); setPreview(null); }} className="text-sm font-medium text-red-700 disabled:opacity-50">Remove photo</button>
+                </div>
+            )}
             {error && (
                 <p role="alert" className="mb-2 flex items-center gap-2 text-sm text-red-700">
                     <AlertCircleIcon size={16} /> {error}
                 </p>
             )}
             <div className="flex items-end gap-2">
+                <input ref={fileRef} type="file" accept="image/jpeg,image/png" onChange={choosePhoto} className="hidden" aria-label="Choose chat photo" disabled={disabled || sending} />
+                <Button type="button" variant="secondary" className="h-11 px-3" disabled={disabled || sending} onClick={() => fileRef.current?.click()} aria-label="Attach photo">Photo</Button>
                 <label htmlFor="chat-input" className="sr-only">Message</label>
                 <textarea
                     id="chat-input"
                     rows={1}
                     value={text}
                     maxLength={MAX_LENGTH}
-                    disabled={disabled}
+                    disabled={disabled || sending}
                     placeholder={disabled ? "Waiting for connection…" : "Write a message"}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
                     }}
-                    className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-[15px] text-text-main outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50"
+                    className="max-h-40 min-h-[44px] min-w-0 flex-1 resize-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-[15px] text-text-main outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-gray-50"
                 />
                 <Button
                     type="submit"
                     className="h-11 px-4 disabled:opacity-60"
-                    disabled={disabled || sending || !text.trim()}
+                    disabled={disabled || sending || (!text.trim() && !photo)}
                     aria-label="Send message"
                     leftIcon={<SendIcon size={18} />}
                 >
                     <span className="hidden sm:inline">{sending ? "Sending…" : "Send"}</span>
                 </Button>
             </div>
-            <p className="mt-1.5 text-[11px] text-text-muted">Enter to send · Shift + Enter for a new line</p>
+            <p className="mt-1.5 text-[11px] text-text-muted">JPG or PNG up to 5 MB · Enter to send · Shift + Enter for a new line</p>
         </form>
     );
 }
@@ -225,7 +269,12 @@ export default function BookingChatPage() {
         endRef.current?.scrollIntoView({ block: "end" });
     }, [messages.length]);
 
-    async function send(content) {
+    async function send(content, photo) {
+        if (photo) {
+            const { message } = await sendBookingPhoto(bookingId, photo, content);
+            setMessages((list) => addMessage(list, message));
+            return { ok: true, message };
+        }
         const socket = socketRef.current;
         if (!socket) return { ok: false, error: "Not connected yet." };
         const ack = await emitWithAck(socket, "chat:message", { bookingId, content });
@@ -297,7 +346,7 @@ export default function BookingChatPage() {
                 </div>
 
                 {booking.canSend ? (
-                    <Composer disabled={connection !== "live"} onSend={send} />
+                    <Composer key={bookingId} disabled={connection !== "live"} onSend={send} />
                 ) : (
                     <p className="border-t border-gray-100 bg-gray-50 px-6 py-4 text-center text-sm text-text-muted">
                         This booking is {booking.status.toLowerCase()}, so the chat is read-only.
