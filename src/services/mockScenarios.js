@@ -76,6 +76,15 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    providerReviews: {
+        label: "Provider reviews",
+        options: {
+            list: "Several pages",
+            few: "One page",
+            empty: "No reviews yet",
+            network: "Network error",
+        },
+    },
     availability: {
         label: "Availability",
         options: {

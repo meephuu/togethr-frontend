@@ -3,8 +3,8 @@ import { useParams } from "react-router-dom";
 import Navbar from "../../components/ui/Navbar";
 import Footer from "../../components/ui/Footer";
 import Avatar from "../../components/ui/Avatar";
-import { StarFilledIcon } from "../../components/ui/Icons";
 import ServiceCard from "../../components/search/ServiceCard";
+import ProviderReviews from "../../components/review/ProviderReviews";
 import { ApiError, UsersService } from "../../services/generated";
 import { interestLabel, toArray } from "../../lib/providerOptions";
 
@@ -24,11 +24,8 @@ function ChipGroup({ title, items }) {
     );
 }
 
-// Reviews and services share one grid: 1 column on mobile, 2 on tablet, 3 on desktop.
+// Services share the reviews' grid: 1 column on mobile, 2 on tablet, 3 on desktop.
 const GRID_CLASS = "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3";
-
-// The API sends reviews newest first; the profile shows only the latest few.
-const REVIEWS_SHOWN = 3;
 
 function ProfileSection({ title, children }) {
     return (
@@ -36,37 +33,6 @@ function ProfileSection({ title, children }) {
             <h2 className="text-xl font-bold text-text-main mb-4">{title}</h2>
             {children}
         </section>
-    );
-}
-
-function ReviewGrid({ reviews }) {
-    if (reviews.length === 0) return <p className="text-sm text-text-muted">No reviews yet</p>;
-    return (
-        <ul className={GRID_CLASS}>
-            {reviews.slice(0, REVIEWS_SHOWN).map((review) => (
-                // Grid items stretch, so the cards in a row share the tallest one's height
-                <li key={review.id} className="flex flex-col bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                            <p className="font-medium text-text-main text-sm">{review.author}</p>
-                            <p className="truncate text-xs text-text-muted">for {review.serviceTitle}</p>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                            <StarFilledIcon size={16} className="text-[#E7711B]" />
-                            <span className="font-bold text-sm text-text-main">{Number(review.rating).toFixed(1)}</span>
-                        </div>
-                    </div>
-                    {review.comment && (
-                        <p className="mt-3 line-clamp-4 text-text-muted text-sm leading-relaxed whitespace-pre-wrap">
-                            {review.comment}
-                        </p>
-                    )}
-                    <p className="mt-auto pt-3 text-xs text-gray-400">
-                        Posted {new Date(review.date).toLocaleDateString()}
-                    </p>
-                </li>
-            ))}
-        </ul>
     );
 }
 
@@ -183,11 +149,8 @@ export default function PublicProfilePage() {
                 {/* Providers only: customers' profiles have neither section */}
                 {!isLoading && !error && profile?.provider && (
                     <>
-                        <ProfileSection
-                            title={profile.reviews?.length ? `Reviews (${profile.reviews.length})` : "Reviews"}
-                        >
-                            <ReviewGrid reviews={profile.reviews ?? []} />
-                        </ProfileSection>
+                        {/* Pages through GET /api/providers/:id/reviews (US8-2); keyed so another profile starts on page 1 */}
+                        <ProviderReviews key={profile.id} providerId={profile.id} />
                         <ProfileSection title="Services">
                             <ServiceGrid services={profile.services ?? []} />
                         </ProfileSection>
