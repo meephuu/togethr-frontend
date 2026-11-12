@@ -1,22 +1,28 @@
 import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
+import PhotoCropDialog from "./PhotoCropDialog";
+import useFileDrop from "../../hooks/useFileDrop";
 import { ApiError, UsersService } from "../../services/generated";
 import { IMAGE_ACCEPT, checkImageFile } from "../../lib/imageFile";
 
-// Upload, replace or remove the signed-in user's profile photo. Saves
-// immediately (separately from the profile form) and reports the new URL.
+// Upload, replace or remove the signed-in user's profile photo. A picked or
+// dropped photo is cropped first, then saved immediately (separately from the
+// profile form), and the new URL is reported.
 export default function ProfilePhotoField({ photoUrl, firstname, lastname, onChange }) {
     const inputRef = useRef(null);
+    const uploadButtonRef = useRef(null);
     const [busy, setBusy] = useState(null); // "upload" | "remove" | null
     const [error, setError] = useState("");
+    const [cropSrc, setCropSrc] = useState(null); // object URL of the photo being cropped
 
     const describeError = (err, fallback) =>
         err instanceof ApiError
             ? err.body?.error || fallback
             : "Could not connect to the server. Please try again.";
 
-    const handleFile = async (file) => {
+    const handleFile = (file) => {
         if (!file) return;
         const problem = checkImageFile(file);
         if (problem) {
@@ -25,6 +31,17 @@ export default function ProfilePhotoField({ photoUrl, firstname, lastname, onCha
         }
 
         setError("");
+        setCropSrc(URL.createObjectURL(file));
+    };
+
+    const closeCrop = () => {
+        URL.revokeObjectURL(cropSrc);
+        setCropSrc(null);
+        uploadButtonRef.current?.focus();
+    };
+
+    const upload = async (file) => {
+        closeCrop();
         setBusy("upload");
         try {
             const response = await UsersService.uploadMyPhoto({ formData: { photo: file } });
@@ -49,8 +66,24 @@ export default function ProfilePhotoField({ photoUrl, firstname, lastname, onCha
         }
     };
 
+    const { isDragging, dropProps } = useFileDrop({
+        onFile: handleFile,
+        disabled: busy !== null || cropSrc !== null,
+    });
+
     return (
-        <section aria-labelledby="profile-photo-label" className="mb-8 flex items-center gap-5">
+        <section
+            aria-labelledby="profile-photo-label"
+            className="relative isolate mb-8 flex items-center gap-5"
+            {...dropProps}
+        >
+            {/* Dragging highlight, drawn a little outside the content so nothing moves */}
+            {isDragging && (
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -inset-3 -z-10 rounded-xl border-2 border-dashed border-primary bg-secondary"
+                />
+            )}
             <Avatar
                 photoUrl={photoUrl}
                 firstname={firstname}
@@ -64,6 +97,7 @@ export default function ProfilePhotoField({ photoUrl, firstname, lastname, onCha
                 </p>
                 <div className="flex flex-wrap gap-3">
                     <Button
+                        ref={uploadButtonRef}
                         type="button"
                         variant="secondary"
                         className="h-10 disabled:cursor-not-allowed disabled:opacity-60"
@@ -83,7 +117,7 @@ export default function ProfilePhotoField({ photoUrl, firstname, lastname, onCha
                         </button>
                     )}
                 </div>
-                <p className="text-xs text-text-muted">JPG or PNG, up to 5 MB.</p>
+                <p className="text-xs text-text-muted">JPG or PNG, up to 5 MB, or drag a photo here.</p>
                 {error && (
                     <p className="text-xs text-red-600" role="alert">
                         {error}
@@ -102,6 +136,9 @@ export default function ProfilePhotoField({ photoUrl, firstname, lastname, onCha
                     e.target.value = "";
                 }}
             />
+            {/* Portalled: the section's `isolate` would otherwise trap the overlay under the navbar */}
+            {cropSrc &&
+                createPortal(<PhotoCropDialog src={cropSrc} onCancel={closeCrop} onSave={upload} />, document.body)}
         </section>
     );
 }
