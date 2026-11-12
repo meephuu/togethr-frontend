@@ -288,13 +288,19 @@ export async function updateBookingStatus(bookingId, status) {
 /**
  * @typedef {Object} MyBooking
  * @property {string} id
- * @property {"WAITING_FOR_CONFIRMATION"|"CONFIRMED"|"REJECTED"|"EXPIRED"|"CANCELLED"|"COMPLETED"} bookingStatus
+ * @property {"WAITING_FOR_CONFIRMATION"|"CONFIRMED"|"IN_PROGRESS"|"REJECTED"|"EXPIRED"|"CANCELLED"|"COMPLETED"} bookingStatus
+ *   IN_PROGRESS: a confirmed booking whose start time has passed (set by the
+ *   server's scheduled job, US6-5)
  * @property {string} appointmentDate "YYYY-MM-DD"
  * @property {string|null} startTime "HH:MM", null for a whole-day booking
  * @property {string|null} endTime
  * @property {number|null} totalPrice
  * @property {string} startsAt ISO time the booking begins
+ * @property {string} [endsAt] ISO time the booking ends (US6-5). When the
+ *   server doesn't send it, the page works it out from startsAt and the times.
  * @property {boolean} canCancel confirmed and not started yet
+ * @property {boolean} [canComplete] confirmed or in progress, and its end time
+ *   has passed (US6-5). Worked out on the page when the server doesn't send it.
  * @property {{ rating: number, comment: string|null, timestamp: string }|null} review
  *   the customer's review of a completed booking, null until they write one
  * @property {{ id: string, title: string, location: string, coverPhotoUrl: string|null }} service
@@ -348,5 +354,24 @@ export async function createReview(values) {
         url: "/reviews",
         body: values,
         mediaType: "application/json",
+    });
+}
+
+/**
+ * The customer confirms a trip is over, which unlocks the review form (US6-5).
+ * PATCH /api/bookings/:id/complete
+ * - 200 { booking } with bookingStatus "COMPLETED"
+ * - 409 when the booking hasn't ended yet, or isn't confirmed / in progress
+ *   (e.g. already completed or cancelled)
+ * - 403 for anyone but the booking's customer; 404 when it doesn't exist
+ * @param {string} bookingId
+ * @returns {Promise<{ booking: Object }>}
+ */
+export async function completeBooking(bookingId) {
+    if (USE_MOCKS) return mocks.completeBooking(bookingId);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/bookings/{id}/complete",
+        path: { id: bookingId },
     });
 }

@@ -68,6 +68,14 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    completeBooking: {
+        label: "Confirm completion",
+        options: {
+            success: "Success (200)",
+            notEnded: "Not ended yet (409)",
+            network: "Network error",
+        },
+    },
     createReview: {
         label: "Submit review",
         options: {

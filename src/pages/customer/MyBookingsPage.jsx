@@ -7,29 +7,37 @@ import Button from "../../components/ui/Button";
 import Toast from "../../components/ui/Toast";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
 import CancelBookingDialog from "../../components/booking/CancelBookingDialog";
+import CompleteBookingDialog from "../../components/booking/CompleteBookingDialog";
 import ReviewBookingDialog from "../../components/review/ReviewBookingDialog";
 import { StarRatingDisplay } from "../../components/review/StarRatingInput";
-import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon, StarFilledIcon } from "../../components/ui/Icons";
+import { AlertCircleIcon, CalendarIcon, CheckIcon, ClockIcon, MapPinIcon, StarFilledIcon } from "../../components/ui/Icons";
 import { formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 import { getMyBookings } from "../../services/sprint2Api";
 
 // Customer's "My bookings" page (US6-4): upcoming and past bookings, and the
-// entry point for cancelling a confirmed booking and for reviewing a completed
-// one (US8-1). Marking a trip complete (US6-5) belongs on the same cards once
-// its endpoint exists.
+// entry point for cancelling a confirmed booking, confirming a finished trip is
+// complete (US6-5) and reviewing a completed one (US8-1).
 
 const STATUS_PILL = {
     WAITING_FOR_CONFIRMATION: { label: "Waiting for confirmation", className: "bg-amber-50 text-amber-800" },
     CONFIRMED: { label: "Confirmed", className: "bg-emerald-50 text-emerald-700" },
+    IN_PROGRESS: { label: "In progress", className: "bg-blue-50 text-blue-700" },
     REJECTED: { label: "Rejected", className: "bg-gray-100 text-text-muted" },
     EXPIRED: { label: "Expired", className: "bg-gray-100 text-text-muted" },
     CANCELLED: { label: "Cancelled", className: "bg-gray-100 text-text-muted" },
     COMPLETED: { label: "Completed", className: "bg-blue-50 text-blue-700" },
 };
 
-// A confirmed booking whose time has come but isn't completed yet
-const STARTED_PILL = { label: "Started", className: "bg-blue-50 text-blue-700" };
+// A confirmed booking whose time has come but isn't completed yet. The server's
+// scheduled job moves these to IN_PROGRESS; this covers the minute before it runs.
+const STARTED_PILL = STATUS_PILL.IN_PROGRESS;
+// Its end time has passed and it's waiting for the customer to confirm
+const ENDED_PILL = { label: "Ended", className: "bg-amber-50 text-amber-800" };
+
+// How often the page re-checks whether a trip has ended, so the
+// "Confirm completion" button shows up without a reload
+const CLOCK_TICK_MS = 30 * 1000;
 
 const TABS = [
     { id: "upcoming", label: "Upcoming" },
@@ -52,6 +60,34 @@ function formatDate(date) {
     });
 }
 
+function minutesOf(time) {
+    const [h, m] = time.split(":").map(Number);
+    return h * 60 + m;
+}
+
+// When the booking ends. Uses the server's endsAt when it sends one; otherwise
+// startsAt plus the slot length (a whole-day booking lasts 24 hours).
+function bookingEndsAt(item) {
+    if (item.endsAt) return new Date(item.endsAt);
+    const start = new Date(item.startsAt).getTime();
+    const minutes = item.startTime && item.endTime ? minutesOf(item.endTime) - minutesOf(item.startTime) : 24 * 60;
+    return new Date(start + minutes * 60 * 1000);
+}
+
+function formatTime(date) {
+    return date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
+// Re-renders the page every so often, so time-based buttons stay right
+function useNow(intervalMs) {
+    const [now, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        const id = setInterval(() => setNow(Date.now()), intervalMs);
+        return () => clearInterval(id);
+    }, [intervalMs]);
+    return now;
+}
+
 // Moves a booking out of upcoming once cancelled, keeping past newest first
 function markCancelled(lists, id) {
     const item = lists.upcoming.find((b) => b.id === id);
@@ -61,6 +97,12 @@ function markCancelled(lists, id) {
         upcoming: lists.upcoming.filter((b) => b.id !== id),
         past: [cancelled, ...lists.past].sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
     };
+}
+
+// Marks a booking completed wherever it's listed, so it can be reviewed
+function markCompleted(lists, id) {
+    const complete = (b) => (b.id === id ? { ...b, bookingStatus: "COMPLETED", canCancel: false, canComplete: false } : b);
+    return { upcoming: lists.upcoming.map(complete), past: lists.past.map(complete) };
 }
 
 // Puts the customer's review on a past booking, once it's saved
@@ -73,14 +115,21 @@ function markReviewed(lists, id, review) {
 
 // ---------- one booking ----------
 
-function BookingItem({ item, onCancel, onReview }) {
+function BookingItem({ item, now, onCancel, onComplete, onReview }) {
     const { service, provider } = item;
     // The server only allows cancelling a confirmed booking before it starts
     const started = item.bookingStatus === "CONFIRMED" && !item.canCancel;
+    const inProgress = item.bookingStatus === "IN_PROGRESS" || started;
+    const endsAt = bookingEndsAt(item);
+    const ended = endsAt.getTime() <= now;
+    // Prefer the server's answer; fall back to the same rule it enforces
+    const canComplete = inProgress && (item.canComplete ?? ended);
     const canReview = item.bookingStatus === "COMPLETED" && !item.review;
-    const pill = started
-        ? STARTED_PILL
-        : STATUS_PILL[item.bookingStatus] ?? { label: item.bookingStatus, className: "bg-gray-100 text-text-muted" };
+    const pill = canComplete
+        ? ENDED_PILL
+        : started
+          ? STARTED_PILL
+          : STATUS_PILL[item.bookingStatus] ?? { label: item.bookingStatus, className: "bg-gray-100 text-text-muted" };
 
     return (
         <li className={`${CARD_CLASS} flex flex-col gap-5 p-6 md:flex-row md:items-start md:justify-between`}>
@@ -120,6 +169,26 @@ function BookingItem({ item, onCancel, onReview }) {
                 )}
                 {item.bookingStatus === "WAITING_FOR_CONFIRMATION" && (
                     <p className="text-sm text-text-muted md:text-right">The provider has 24 hours to answer.</p>
+                )}
+                {inProgress && !canComplete && (
+                    <p className="text-sm text-text-muted md:text-right">
+                        Enjoy your trip! You can confirm it's complete after it ends
+                        {item.startTime ? ` at ${formatTime(endsAt)}` : ""}.
+                    </p>
+                )}
+                {canComplete && (
+                    <>
+                        <p className="text-sm text-text-muted md:text-right">
+                            Your trip has ended. Confirm it's complete to leave a review.
+                        </p>
+                        <Button
+                            className="w-full md:w-auto"
+                            leftIcon={<CheckIcon size={16} />}
+                            onClick={() => onComplete(item)}
+                        >
+                            Confirm completion
+                        </Button>
+                    </>
                 )}
                 {item.canCancel && (
                     <Button variant="secondary" className="w-full md:w-auto" onClick={() => onCancel(item)}>
@@ -190,9 +259,11 @@ export default function MyBookingsPage() {
     const [reloadKey, setReloadKey] = useState(0);
     const [tab, setTab] = useState("upcoming");
     const [cancelling, setCancelling] = useState(null); // the booking whose dialog is open
+    const [completing, setCompleting] = useState(null); // the booking being confirmed complete
     const [reviewing, setReviewing] = useState(null); // the booking being reviewed
     const [toast, setToast] = useState(null);
     const [notice, setNotice] = useState(null); // page-level message, e.g. a cancel the server refused
+    const now = useNow(CLOCK_TICK_MS);
 
     useEffect(() => {
         let ignore = false;
@@ -222,6 +293,26 @@ export default function MyBookingsPage() {
             title: "Booking cancelled",
             text: `${item.provider.firstname} has been told. You'll find it under Past.`,
         });
+    }
+
+    // Completing unlocks the review, so go straight to the review form
+    function handleCompleted() {
+        const item = completing;
+        setCompleting(null);
+        setNotice(null);
+        setResult((prev) => ({ ...prev, ...markCompleted(prev, item.id) }));
+        setReviewing({ ...item, bookingStatus: "COMPLETED", canComplete: false });
+        setToast({
+            title: "Trip completed",
+            text: `Thanks for travelling with ${item.provider.firstname}. You can review it now or later from Past.`,
+        });
+    }
+
+    // The server refused (e.g. not ended yet, or already completed): show why and reload
+    function handleCompleteConflict(message) {
+        setCompleting(null);
+        setNotice(message);
+        reload();
     }
 
     function handleReviewed(review) {
@@ -313,7 +404,14 @@ export default function MyBookingsPage() {
             {result.status === "ready" && visible.length > 0 && (
                 <ul className="flex flex-col gap-4">
                     {visible.map((item) => (
-                        <BookingItem key={item.id} item={item} onCancel={setCancelling} onReview={setReviewing} />
+                        <BookingItem
+                            key={item.id}
+                            item={item}
+                            now={now}
+                            onCancel={setCancelling}
+                            onComplete={setCompleting}
+                            onReview={setReviewing}
+                        />
                     ))}
                 </ul>
             )}
@@ -324,6 +422,15 @@ export default function MyBookingsPage() {
                     onClose={() => setCancelling(null)}
                     onCancelled={handleCancelled}
                     onConflict={handleConflict}
+                />
+            )}
+
+            {completing && (
+                <CompleteBookingDialog
+                    booking={completing}
+                    onClose={() => setCompleting(null)}
+                    onCompleted={handleCompleted}
+                    onConflict={handleCompleteConflict}
                 />
             )}
 

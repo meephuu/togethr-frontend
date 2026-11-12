@@ -452,7 +452,11 @@ function mockBooking(id, status, daysFromToday, startTime, endTime, fields) {
     const [y, m, d] = appointmentDate.split("-").map(Number);
     const [hh, mm] = (startTime || "00:00").split(":").map(Number);
     const startsAt = new Date(y, m - 1, d, hh, mm).toISOString();
-    return { id, bookingStatus: status, appointmentDate, startTime, endTime, startsAt, ...fields };
+    // Whole-day bookings end at midnight the next day
+    const endsAt = startTime
+        ? new Date(y, m - 1, d, ...endTime.split(":").map(Number)).toISOString()
+        : new Date(y, m - 1, d + 1).toISOString();
+    return { id, bookingStatus: status, appointmentDate, startTime, endTime, startsAt, endsAt, ...fields };
 }
 
 const MALI = { id: "provider-mali", firstname: "Mali", lastname: "S.", profilePhotoUrl: null };
@@ -471,7 +475,14 @@ const myBookings = [
         provider: ARTHIT,
         review: { rating: 4, comment: "Great photo spots, a bit rushed at the end.", timestamp: new Date().toISOString() },
     }),
+    // US6-5: one that ended yesterday and can be confirmed complete, and one
+    // happening today that can't be yet
+    mockBooking("bk-7", "IN_PROGRESS", -1, "09:00", "12:00", { totalPrice: 1350, service: COVERLESS(OLD_TOWN), provider: MALI }),
+    mockBooking("bk-8", "IN_PROGRESS", 0, null, null, { totalPrice: 2200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
 ];
+
+const hasEnded = (item) => new Date(item.endsAt).getTime() <= Date.now();
+const canComplete = (item) => ["CONFIRMED", "IN_PROGRESS"].includes(item.bookingStatus) && hasEnded(item);
 
 const isUpcoming = (item) =>
     ["WAITING_FOR_CONFIRMATION", "CONFIRMED"].includes(item.bookingStatus) && new Date(item.startsAt).getTime() > Date.now();
@@ -487,6 +498,7 @@ export async function getMyBookings() {
             const items = myBookings.map((item) => ({
                 ...item,
                 canCancel: item.bookingStatus === "CONFIRMED" && isUpcoming(item),
+                canComplete: canComplete(item),
                 review: item.review ?? null,
             }));
             return {
@@ -517,6 +529,34 @@ export async function cancelBooking(bookingId) {
     }
     item.bookingStatus = "CANCELLED";
     return { booking: { id: item.id, bookingStatus: "CANCELLED" } };
+}
+
+// US6-5. Completions made through the mock stick until reload.
+export async function completeBooking(bookingId) {
+    await wait(500);
+    const url = `/api/bookings/${bookingId}/complete`;
+    const item = myBookings.find((candidate) => candidate.id === bookingId);
+    if (!item) throw httpError("PATCH", url, 404, "Not Found", { error: "Booking not found." });
+
+    switch (getMockScenario("completeBooking")) {
+        case "notEnded":
+            throw httpError("PATCH", url, 409, "Conflict", {
+                error: "You can confirm completion only after the booking has ended.",
+            });
+        case "network":
+            throw networkError();
+        default:
+    }
+    if (!["CONFIRMED", "IN_PROGRESS"].includes(item.bookingStatus)) {
+        throw httpError("PATCH", url, 409, "Conflict", { error: "Only a confirmed booking can be completed." });
+    }
+    if (!hasEnded(item)) {
+        throw httpError("PATCH", url, 409, "Conflict", {
+            error: "You can confirm completion only after the booking has ended.",
+        });
+    }
+    item.bookingStatus = "COMPLETED";
+    return { booking: { id: item.id, bookingStatus: "COMPLETED" } };
 }
 
 // US8-1. Reviews made through the mock stick until reload.
