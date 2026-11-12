@@ -811,27 +811,110 @@ components:
               example: "4.75"
 
     PublicUserProfile:
-      allOf:
-        - $ref: "#/components/schemas/AuthUser"
-        - type: object
+      type: object
+      description: >-
+        Public fields only. email, gender, bdate, phoneNumber, bankAccount and the
+        provider's idCard and emergency contact are never returned.
+        reviews and services are present only when the user is a provider.
+      required: [id, username, firstname, lastname]
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        profilePhotoUrl:
+          type: string
+          nullable: true
+          description: Path on the API server, e.g. /uploads/profile-photos/abc.jpg (null when none).
+        instagram:
+          type: string
+          nullable: true
+        line:
+          type: string
+          nullable: true
+        facebook:
+          type: string
+          nullable: true
+        provider:
+          allOf:
+            - $ref: "#/components/schemas/PublicProviderProfile"
+          nullable: true
+        reviews:
+          type: array
+          description: Reviews on all of the provider's services, newest first. Providers only.
+          items:
+            $ref: "#/components/schemas/PublicReview"
+        services:
+          type: array
+          description: The provider's published services, in the search result shape. Providers only.
+          items:
+            $ref: "#/components/schemas/ServiceCard"
+
+    PublicReview:
+      type: object
+      required: [id, author, rating, comment, date, serviceTitle]
+      properties:
+        id:
+          type: string
+        author:
+          type: string
+          description: The reviewer's first name only
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        serviceTitle:
+          type: string
+
+    ServiceCard:
+      type: object
+      description: One service as GET /api/services/search returns it.
+      required: [id, title, location, rate, rateUnit, coverPhotoUrl, provider, reviewCount]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        location:
+          type: string
+        rate:
+          type: number
+        rateUnit:
+          type: string
+          nullable: true
+        coverPhotoUrl:
+          type: string
+          nullable: true
+        provider:
+          type: object
+          required: [id, firstname, lastname, profilePhotoUrl, avgRating]
           properties:
-            gender:
-              allOf:
-                - $ref: "#/components/schemas/Gender"
-              nullable: true
-            instagram:
+            id:
+              type: string
+              format: uuid
+            firstname:
+              type: string
+            lastname:
+              type: string
+            profilePhotoUrl:
               type: string
               nullable: true
-            line:
-              type: string
+            avgRating:
+              type: number
               nullable: true
-            facebook:
-              type: string
-              nullable: true
-            provider:
-              allOf:
-                - $ref: "#/components/schemas/PublicProviderProfile"
-              nullable: true
+        reviewCount:
+          type: integer
 
     ProfilePhotoResponse:
       type: object

@@ -103,9 +103,9 @@ export default function PrivacyPolicyContent() {
                     </li>
                     <li>
                         <span className="font-semibold text-text-main">Public profile</span>: part of every account&rsquo;s
-                        profile is visible to anyone, without signing in — name, username, email address, gender, and
-                        any social contact channels you add, plus bio, languages spoken, and review score for
-                        Providers. It{" "}
+                        profile is visible to anyone, without signing in — name, username, and any social contact
+                        channels you add, plus bio, languages spoken, review score, reviews (with the reviewer&rsquo;s
+                        first name), and published services for Providers. It{" "}
                         <span className="font-semibold text-text-main">excludes</span> national ID number, bank
                         account, phone number, date of birth, and emergency contact information, which remain hidden
                         from public access

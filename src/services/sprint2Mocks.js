@@ -287,7 +287,7 @@ const SEARCH_SERVICES = [
     ...service,
     rateUnit: "hour",
     coverPhotoUrl: null,
-    provider: { firstname, lastname, avgRating, profilePhotoUrl: null },
+    provider: { id: `provider-${firstname.toLowerCase()}`, firstname, lastname, avgRating, profilePhotoUrl: null },
 }));
 
 const SORTERS = {
@@ -347,6 +347,7 @@ export async function getServiceById(id) {
     const { gender, age, ...rest } = service; // eslint-disable-line no-unused-vars
     return {
         ...rest,
+        providerId: `provider-${rest.provider.firstname.toLowerCase()}`,
         description: "A sample service from the mock data. Turn mocks off to see real services.",
         startTime: "09:00",
         endTime: "17:00",
