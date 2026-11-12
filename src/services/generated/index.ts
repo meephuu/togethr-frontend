@@ -13,8 +13,11 @@ export type { AddProviderProfileRequest } from './models/AddProviderProfileReque
 export type { AuthenticatedUser } from './models/AuthenticatedUser';
 export type { AuthUser } from './models/AuthUser';
 export type { BaseRegistrationFields } from './models/BaseRegistrationFields';
-export { Complaint } from './models/Complaint';
+export type { Complaint } from './models/Complaint';
 export { ComplaintCategory } from './models/ComplaintCategory';
+export type { ComplaintDetails } from './models/ComplaintDetails';
+export { ComplaintStatus } from './models/ComplaintStatus';
+export type { ComplaintSummary } from './models/ComplaintSummary';
 export type { DeleteAccountRequest } from './models/DeleteAccountRequest';
 export type { DeleteAccountResponse } from './models/DeleteAccountResponse';
 export type { ErrorResponse } from './models/ErrorResponse';

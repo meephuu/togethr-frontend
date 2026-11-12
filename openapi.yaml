@@ -77,6 +77,135 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /complaints/me:
+    get:
+      tags: [Complaints]
+      operationId: listMyComplaints
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaints]
+                properties:
+                  complaints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ComplaintSummary"
+
+  /complaints/admin:
+    get:
+      tags: [Complaints]
+      operationId: listAdminComplaints
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaints]
+                properties:
+                  complaints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ComplaintSummary"
+
+  /complaints/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Complaints]
+      operationId: getMyComplaint
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint details
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/ComplaintDetails"
+
+  /complaints/admin/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Complaints]
+      operationId: getAdminComplaint
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint details
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/ComplaintDetails"
+    patch:
+      tags: [Complaints]
+      operationId: updateAdminComplaint
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedStatus, expectedUpdatedAt, status, adminReply]
+              properties:
+                expectedStatus:
+                  $ref: "#/components/schemas/ComplaintStatus"
+                expectedUpdatedAt:
+                  type: string
+                  format: date-time
+                status:
+                  $ref: "#/components/schemas/ComplaintStatus"
+                adminReply:
+                  type: string
+                  maxLength: 2000
+      responses:
+        "200":
+          description: Complaint updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/ComplaintDetails"
+        "409":
+          description: Complaint was changed by another reviewer
+
   /auth/register:
     post:
       tags: [Auth]
@@ -481,6 +610,46 @@ components:
     ComplaintCategory:
       type: string
       enum: [PAYMENT, CANCELLATION_OR_REFUND, PROVIDER_NO_SHOW, SERVICE_NOT_AS_DESCRIBED, OTHER]
+    ComplaintStatus:
+      type: string
+      enum: [PENDING, IN_PROGRESS, RESOLVED, CLOSED]
+    ComplaintSummary:
+      type: object
+      required: [id, bookingId, category, subject, status, createdAt, booking]
+      properties:
+        id:
+          type: string
+        bookingId:
+          type: string
+        category:
+          $ref: "#/components/schemas/ComplaintCategory"
+        subject:
+          type: string
+        status:
+          $ref: "#/components/schemas/ComplaintStatus"
+        createdAt:
+          type: string
+          format: date-time
+        booking:
+          type: object
+          required: [service]
+          properties:
+            service:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+    ComplaintDetails:
+      allOf:
+        - $ref: "#/components/schemas/Complaint"
+        - $ref: "#/components/schemas/ComplaintSummary"
+        - type: object
+          required: [adminReply]
+          properties:
+            adminReply:
+              type: string
+              nullable: true
     Complaint:
       type: object
       required: [id, bookingId, category, subject, description, status, createdAt, updatedAt, attachments]
@@ -496,8 +665,7 @@ components:
         description:
           type: string
         status:
-          type: string
-          enum: [PENDING]
+          $ref: "#/components/schemas/ComplaintStatus"
         createdAt:
           type: string
           format: date-time
@@ -531,7 +699,7 @@ components:
 
     UserRole:
       type: string
-      enum: [CUSTOMER, PROVIDER]
+      enum: [CUSTOMER, PROVIDER, ADMIN]
       description: A profile the account holds.
 
     BaseRegistrationFields:

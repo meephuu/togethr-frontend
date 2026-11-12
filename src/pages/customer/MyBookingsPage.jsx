@@ -10,7 +10,7 @@ import CancelBookingDialog from "../../components/booking/CancelBookingDialog";
 import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon } from "../../components/ui/Icons";
 import { formatBaht, formatBookingDate } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
-import { getMyBookings } from "../../services/sprint2Api";
+import { getMyBookings, getMyComplaints } from "../../services/sprint2Api";
 
 // Customer's "My bookings" page (US6-4): upcoming and past bookings, and the
 // entry point for cancelling a confirmed booking. Marking a trip complete
@@ -51,7 +51,7 @@ function markCancelled(lists, id) {
 
 // ---------- one booking ----------
 
-function BookingItem({ item, onCancel, tab }) {
+function BookingItem({ item, onCancel, tab, hasComplaint }) {
     const { service, provider } = item;
     // The server only allows cancelling a confirmed booking before it starts
     const started = item.bookingStatus === "CONFIRMED" && !item.canCancel;
@@ -110,6 +110,12 @@ function BookingItem({ item, onCancel, tab }) {
                 >
                     Report an issue
                 </Link>
+                {hasComplaint && (
+                    <Link to={`/customer/complaints?bookingId=${encodeURIComponent(item.id)}`}
+                        className="text-center text-sm font-medium text-primary underline">
+                        View reported issues
+                    </Link>
+                )}
             </div>
         </li>
     );
@@ -154,12 +160,16 @@ export default function MyBookingsPage() {
     const [result, setResult] = useState({ status: "loading", upcoming: [], past: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
     const [tab, setTab] = useState(state?.tab === "past" ? "past" : "upcoming");
+    const [reportedBookings, setReportedBookings] = useState(() => new Set());
     const [cancelling, setCancelling] = useState(null); // the booking whose dialog is open
     const [toast, setToast] = useState(null);
     const [notice, setNotice] = useState(null); // page-level message, e.g. a cancel the server refused
 
     useEffect(() => {
         let ignore = false;
+        getMyComplaints().then((complaints) => {
+            if (!ignore) setReportedBookings(new Set(complaints.map((complaint) => complaint.bookingId)));
+        }).catch(() => {});
         getMyBookings()
             .then(({ upcoming, past }) => {
                 if (!ignore) setResult({ status: "ready", upcoming, past });
@@ -259,7 +269,8 @@ export default function MyBookingsPage() {
             {result.status === "ready" && visible.length > 0 && (
                 <ul className="flex flex-col gap-4">
                     {visible.map((item) => (
-                        <BookingItem key={item.id} item={item} onCancel={setCancelling} tab={tab} />
+                        <BookingItem key={item.id} item={item} onCancel={setCancelling} tab={tab}
+                            hasComplaint={reportedBookings.has(item.id)} />
                     ))}
                 </ul>
             )}

@@ -84,6 +84,10 @@ function ComplaintForm({ booking, backState }) {
                 <p className="text-lg font-semibold text-text-main">Complaint submitted</p>
                 <p className="text-sm text-text-muted">Status: Pending review</p>
                 <p className="break-all text-sm text-text-muted">Reference: {complaint.id}</p>
+                <Link to={`/customer/complaints/${encodeURIComponent(complaint.id)}`}
+                    className="mr-4 inline-block font-medium text-primary underline">
+                    View complaint
+                </Link>
                 <Link to={BOOKINGS_URL} state={backState} className="inline-block font-medium text-primary underline">
                     Back to My bookings
                 </Link>

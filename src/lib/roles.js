@@ -1,4 +1,5 @@
 export const DASHBOARD_BY_ROLE = {
+    ADMIN: "/admin/complaints",
     CUSTOMER: "/customer/dashboard",
     PROVIDER: "/provider/dashboard",
 };
@@ -13,6 +14,7 @@ export function hasRole(user, role) {
 // before roles existed have none, so they fall back to home rather than a
 // dashboard they'd only be bounced out of.
 export function dashboardFor(user) {
+    if (hasRole(user, "ADMIN")) return DASHBOARD_BY_ROLE.ADMIN;
     if (hasRole(user, "PROVIDER")) return DASHBOARD_BY_ROLE.PROVIDER;
     if (hasRole(user, "CUSTOMER")) return DASHBOARD_BY_ROLE.CUSTOMER;
     return "/";
