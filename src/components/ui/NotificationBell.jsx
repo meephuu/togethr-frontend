@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { hasRole } from "../../lib/roles";
+import NotificationEmailSettings from "./NotificationEmailSettings";
 import {
     getMyNotifications,
     markAllNotificationsRead,
@@ -32,6 +33,7 @@ export default function NotificationBell() {
     const containerRef = useRef(null);
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const [loadResult, setLoadResult] = useState({
         userId: null,
         reloadKey: 0,
@@ -72,6 +74,7 @@ export default function NotificationBell() {
             if (!containerRef.current?.contains(event.target)) {
                 setIsOpen(false);
                 setIsExpanded(false);
+                setShowSettings(false);
             }
         };
 
@@ -79,6 +82,7 @@ export default function NotificationBell() {
             if (event.key === "Escape") {
                 setIsOpen(false);
                 setIsExpanded(false);
+                setShowSettings(false);
             }
         };
 
@@ -105,6 +109,7 @@ export default function NotificationBell() {
     const visibleNotifications = isExpanded ? notifications : notifications.slice(0, 3);
 
     const toggleOpen = () => {
+        setShowSettings(false);
         if (isOpen) {
             setIsOpen(false);
             setIsExpanded(false);
@@ -189,18 +194,26 @@ export default function NotificationBell() {
                     className="absolute right-0 z-50 mt-2 flex max-h-[calc(100vh-6rem)] w-100 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
                 >
                     <header className="flex items-center justify-between gap-3 p-4 bg-primary">
-                        <h3 className="text-base font-semibold text-white">Notifications</h3>
+                        <h3 className="flex-1 text-base font-semibold text-white">Notifications</h3>
                         <button
                             type="button"
                             onClick={markAllAsRead}
-                            disabled={unreadCount === 0 || isMarkingAll}
+                            disabled={showSettings || unreadCount === 0 || isMarkingAll}
                             className="rounded-sm text-sm font-normal text-white transition hover:text-gray-400 focus:outline-none focus:underline disabled:cursor-default disabled:text-gray-400"
                         >
                             {isMarkingAll ? "Marking…" : "Mark all as read"}
                         </button>
+                        <button type="button" aria-label="Notification settings" aria-pressed={showSettings}
+                            onClick={() => { setIsExpanded(false); setShowSettings((value) => !value); setActionError(""); }}
+                            className={`shrink-0 rounded-md p-1.5 transition focus:outline-none focus:ring-2 focus:ring-white ${showSettings ? "bg-gray-600 text-gray-200" : "text-gray-400 hover:bg-white/10 hover:text-white"}`}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="m9 3-.5 2a8 8 0 0 0-2 1L4.5 5.5 2 9l1.5 1.5a8 8 0 0 0 0 3L2 15l2.5 3.5 2-.5a8 8 0 0 0 2 1L9 21h6l.5-2a8 8 0 0 0 2-1l2 .5L22 15l-1.5-1.5a8 8 0 0 0 0-3L22 9l-2.5-3.5-2 .5a8 8 0 0 0-2-1L15 3Z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
                     </header>
 
-                    <div
+                    {showSettings ? <NotificationEmailSettings key={user.id} /> : <div
                         className={isExpanded ? "max-h-[70vh] overflow-y-auto thin-scrollbar" : ""}
                     >
                         {actionError && (
@@ -255,17 +268,17 @@ export default function NotificationBell() {
                                 </button>
                             ))
                         )}
-                    </div>
+                    </div>}
 
-                    {!isLoading && !loadError && notifications.length > 0 && (
+                    {(showSettings || (!isLoading && !loadError && notifications.length > 0)) && (
                         <footer className="border-t border-gray-200 p-2.5 text-center">
                             <button
                                 type="button"
-                                onClick={() => setIsExpanded((expanded) => !expanded)}
+                                onClick={() => showSettings ? setShowSettings(false) : setIsExpanded((expanded) => !expanded)}
                                 aria-expanded={isExpanded}
                                 className="rounded-md px-3 py-1.5 text-sm font-semibold text-primary transition hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
                             >
-                                {isExpanded ? "Show fewer notifications" : "View all notifications"}
+                                {showSettings ? "Back to notifications" : isExpanded ? "Show fewer notifications" : "View all notifications"}
                             </button>
                         </footer>
                     )}
