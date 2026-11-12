@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import CustomerTabs from "../../components/customer/CustomerTabs";
 import Button from "../../components/ui/Button";
@@ -113,7 +113,7 @@ export default function ServiceDetailPage() {
                         
                         <p className="text-text-muted">{service.location}</p>
 
-                        <div className="flex items-center gap-3">
+                        <Link to={`/profile/${service.providerId}`} className="flex items-center gap-3 self-start text-text-muted hover:text-text-main">
                             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-500 overflow-hidden">
                                 {providerAvatar ? (
                                     <img src={providerAvatar} alt={service.provider.firstname} className="w-full h-full object-cover" />
@@ -121,8 +121,8 @@ export default function ServiceDetailPage() {
                                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                                 )}
                             </div>
-                            <span className="font-medium text-text-main">{service.provider.firstname}</span>
-                        </div>
+                            <span className="font-medium">{service.provider.firstname}</span>
+                        </Link>
 
                         {/* Chips */}
                         {categories.length > 0 && (
