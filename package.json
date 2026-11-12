@@ -16,6 +16,7 @@
     "form-data": "^4.0.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-easy-crop": "6.2.4",
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
