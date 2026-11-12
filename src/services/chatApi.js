@@ -44,3 +44,24 @@ export function emitWithAck(socket, event, payload) {
         .emitWithAck(event, payload)
         .catch(() => ({ ok: false, error: "The server didn't answer. Check your connection." }));
 }
+
+export const CHAT_PHOTO_TYPES = ["image/jpeg", "image/png"];
+export const CHAT_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Sends a photo, with an optional caption, to the booking chat (US7-2).
+ * POST /api/bookings/:id/messages/photo (multipart: photo, content?)
+ * - 201 { message }, also pushed live to both sides as "chat:message"
+ * - 413 over 5 MB; 415 not a JPG/PNG; 403 not part of a confirmed booking
+ * @param {string} bookingId
+ * @param {File} photo
+ * @param {string} [content]
+ */
+export function sendChatPhoto(bookingId, photo, content = "") {
+    return request(OpenAPI, {
+        method: "POST",
+        url: "/bookings/{id}/messages/photo",
+        path: { id: bookingId },
+        formData: content ? { photo, content } : { photo },
+    });
+}

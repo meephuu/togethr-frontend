@@ -3,10 +3,19 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import Avatar from "../../components/ui/Avatar";
 import Button from "../../components/ui/Button";
-import { AlertCircleIcon, CalendarIcon, ChevronLeftIcon, ClockIcon, SendIcon } from "../../components/ui/Icons";
+import { AlertCircleIcon, CalendarIcon, ChevronLeftIcon, ClockIcon, ImageIcon, SendIcon, XIcon } from "../../components/ui/Icons";
 import { CARD_CLASS } from "../../lib/styles";
+import { assetUrl } from "../../lib/assets";
 import { useAuth } from "../../hooks/useAuth";
-import { ApiError, connectChat, emitWithAck, getBookingMessages } from "../../services/chatApi";
+import {
+    ApiError,
+    CHAT_PHOTO_MAX_BYTES,
+    CHAT_PHOTO_TYPES,
+    connectChat,
+    emitWithAck,
+    getBookingMessages,
+    sendChatPhoto,
+} from "../../services/chatApi";
 
 // Booking chat (US7-1): the customer and provider of a confirmed booking talk
 // about the trip. History comes from REST; new messages arrive over Socket.IO.
@@ -94,13 +103,31 @@ function MessageList({ messages, myId, endRef }) {
                             {!mine && !grouped && (
                                 <span className="mb-1 text-xs font-medium text-text-muted">{m.senderName}</span>
                             )}
-                            <div
-                                className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-[15px] leading-relaxed ${
-                                    mine ? "rounded-br-md bg-primary text-white" : "rounded-bl-md bg-gray-100 text-text-main"
-                                }`}
-                            >
-                                {m.content}
-                            </div>
+                            {m.imageUrl && (
+                                <a
+                                    href={assetUrl(m.imageUrl)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className={`block overflow-hidden rounded-2xl border border-gray-200 ${m.content ? "mb-1" : ""}`}
+                                >
+                                    <img
+                                        src={assetUrl(m.imageUrl)}
+                                        alt={m.content || `Photo from ${mine ? "you" : m.senderName}`}
+                                        className="max-h-72 w-auto max-w-full object-cover"
+                                        // The height is only known once it loads, so scroll again
+                                        onLoad={() => endRef.current?.scrollIntoView({ block: "end" })}
+                                    />
+                                </a>
+                            )}
+                            {m.content && (
+                                <div
+                                    className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-[15px] leading-relaxed ${
+                                        mine ? "rounded-br-md bg-primary text-white" : "rounded-bl-md bg-gray-100 text-text-main"
+                                    }`}
+                                >
+                                    {m.content}
+                                </div>
+                            )}
                             <time dateTime={m.timestamp} className="mt-1 text-[11px] text-text-muted">
                                 {formatTime(m.timestamp)}
                             </time>
@@ -113,21 +140,54 @@ function MessageList({ messages, myId, endRef }) {
     );
 }
 
-function Composer({ disabled, onSend }) {
+function photoError(file) {
+    if (!CHAT_PHOTO_TYPES.includes(file.type)) return "Only JPG or PNG photos can be sent.";
+    if (file.size > CHAT_PHOTO_MAX_BYTES) return "Photo must be 5 MB or smaller.";
+    return null;
+}
+
+function sendPhotoErrorText(err) {
+    if (err instanceof ApiError && err.body?.error) return err.body.error;
+    return "Couldn't send the photo. Try again.";
+}
+
+function Composer({ disabled, onSend, onSendPhoto }) {
     const [text, setText] = useState("");
+    const [photo, setPhoto] = useState(null); // { file, previewUrl }
     const [sending, setSending] = useState(false);
     const [error, setError] = useState(null);
+    const fileRef = useRef(null);
+
+    // Free the preview's object URL when it's replaced or the page closes
+    useEffect(() => () => photo && URL.revokeObjectURL(photo.previewUrl), [photo]);
+
+    function pickPhoto(e) {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        const problem = photoError(file);
+        if (problem) {
+            setError(problem);
+            return;
+        }
+        setError(null);
+        setPhoto({ file, previewUrl: URL.createObjectURL(file) });
+    }
 
     async function submit(e) {
         e?.preventDefault();
         const content = text.trim();
-        if (!content || sending || disabled) return;
+        if ((!content && !photo) || sending || disabled) return;
         setSending(true);
         setError(null);
-        const ack = await onSend(content);
+        const ack = photo ? await onSendPhoto(photo.file, content) : await onSend(content);
         setSending(false);
-        if (ack.ok) setText("");
-        else setError(ack.error || "Couldn't send. Try again.");
+        if (ack.ok) {
+            setText("");
+            setPhoto(null);
+        } else {
+            setError(ack.error || "Couldn't send. Try again.");
+        }
     }
 
     return (
@@ -137,7 +197,47 @@ function Composer({ disabled, onSend }) {
                     <AlertCircleIcon size={16} /> {error}
                 </p>
             )}
+            {photo && (
+                <div className="mb-2 flex items-center gap-3">
+                    <div className="relative">
+                        <img
+                            src={photo.previewUrl}
+                            alt="Photo to send"
+                            className="h-20 w-20 rounded-lg border border-gray-200 object-cover"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setPhoto(null)}
+                            disabled={sending}
+                            aria-label="Remove photo"
+                            className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow hover:bg-primary-hover"
+                        >
+                            <XIcon size={14} />
+                        </button>
+                    </div>
+                    <p className="min-w-0 truncate text-xs text-text-muted">
+                        {photo.file.name} · {(photo.file.size / 1024 / 1024).toFixed(1)} MB
+                    </p>
+                </div>
+            )}
             <div className="flex items-end gap-2">
+                <input
+                    ref={fileRef}
+                    type="file"
+                    accept={CHAT_PHOTO_TYPES.join(",")}
+                    className="hidden"
+                    onChange={pickPhoto}
+                />
+                <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={disabled || sending}
+                    aria-label="Add a photo"
+                    title="Add a photo (JPG or PNG, max 5 MB)"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-text-muted hover:bg-gray-50 hover:text-text-main disabled:opacity-50"
+                >
+                    <ImageIcon size={20} />
+                </button>
                 <label htmlFor="chat-input" className="sr-only">Message</label>
                 <textarea
                     id="chat-input"
@@ -145,7 +245,7 @@ function Composer({ disabled, onSend }) {
                     value={text}
                     maxLength={MAX_LENGTH}
                     disabled={disabled}
-                    placeholder={disabled ? "Waiting for connection…" : "Write a message"}
+                    placeholder={disabled ? "Waiting for connection…" : photo ? "Add a caption (optional)" : "Write a message"}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
@@ -155,14 +255,14 @@ function Composer({ disabled, onSend }) {
                 <Button
                     type="submit"
                     className="h-11 px-4 disabled:opacity-60"
-                    disabled={disabled || sending || !text.trim()}
+                    disabled={disabled || sending || (!text.trim() && !photo)}
                     aria-label="Send message"
                     leftIcon={<SendIcon size={18} />}
                 >
                     <span className="hidden sm:inline">{sending ? "Sending…" : "Send"}</span>
                 </Button>
             </div>
-            <p className="mt-1.5 text-[11px] text-text-muted">Enter to send · Shift + Enter for a new line</p>
+            <p className="mt-1.5 text-[11px] text-text-muted">Enter to send · Shift + Enter for a new line · JPG/PNG up to 5 MB</p>
         </form>
     );
 }
@@ -233,6 +333,16 @@ export default function BookingChatPage() {
         return ack;
     }
 
+    async function sendPhoto(file, content) {
+        try {
+            const { message } = await sendChatPhoto(bookingId, file, content);
+            setMessages((list) => addMessage(list, message));
+            return { ok: true };
+        } catch (err) {
+            return { ok: false, error: sendPhotoErrorText(err) };
+        }
+    }
+
     if (state.status === "loading") {
         return (
             <PageShell centered>
@@ -297,7 +407,7 @@ export default function BookingChatPage() {
                 </div>
 
                 {booking.canSend ? (
-                    <Composer disabled={connection !== "live"} onSend={send} />
+                    <Composer disabled={connection !== "live"} onSend={send} onSendPhoto={sendPhoto} />
                 ) : (
                     <p className="border-t border-gray-100 bg-gray-50 px-6 py-4 text-center text-sm text-text-muted">
                         This booking is {booking.status.toLowerCase()}, so the chat is read-only.
