@@ -62,7 +62,8 @@ export class AuthService {
     }
     /**
      * Log in with an email and password
-     * Sets an HttpOnly `token` cookie when authentication succeeds.
+     * Sets an HttpOnly `token` cookie when authentication succeeds. The 5th wrong password in a row locks the account for 15 minutes (US1-3); unknown and deleted accounts are never locked.
+     *
      * @returns LoginResponse Login successful
      * @throws ApiError
      */
@@ -79,6 +80,7 @@ export class AuthService {
             errors: {
                 400: `Invalid request`,
                 401: `Authentication failed or is required`,
+                423: `Account locked: "invalid email or password; the account is locked for 15 minutes" on the 5th failure, then "this account is temporarily locked; try again later" until the lock ends`,
                 500: `Unexpected server error`,
             },
         });
