@@ -8,6 +8,7 @@ import { CARD_CLASS } from "../../lib/styles";
 import { useAuth } from "../../hooks/useAuth";
 import { ApiError, connectChat, emitWithAck, getBookingMessages, sendBookingPhoto } from "../../services/chatApi";
 import { assetUrl } from "../../lib/assets";
+import ChatPhotoPreview from "../../components/chat/ChatPhotoPreview";
 
 // Booking chat (US7-1): the customer and provider of a confirmed booking talk
 // about the trip. History comes from REST; new messages arrive over Socket.IO.
@@ -67,6 +68,7 @@ function ConnectionDot({ state }) {
 }
 
 function MessageList({ messages, myId, endRef }) {
+    const [previewMessage, setPreviewMessage] = useState(null);
     if (messages.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-1 px-6 py-16 text-center">
@@ -77,6 +79,7 @@ function MessageList({ messages, myId, endRef }) {
     }
 
     return (
+        <>
         <ol className="flex flex-col gap-2 px-4 py-5 sm:px-6" aria-label="Messages">
             {messages.map((m, i) => {
                 const mine = m.senderId === myId;
@@ -101,9 +104,9 @@ function MessageList({ messages, myId, endRef }) {
                                 }`}
                             >
                                 {m.imageUrl && (
-                                    <a href={assetUrl(m.imageUrl)} target="_blank" rel="noreferrer" aria-label="Open shared photo">
+                                    <button type="button" onClick={() => setPreviewMessage(m)} aria-label="Preview shared photo" className="block cursor-zoom-in rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
                                         <img src={assetUrl(m.imageUrl)} alt="Shared trip photo" className="max-h-64 max-w-full rounded-lg object-contain" />
-                                    </a>
+                                    </button>
                                 )}
                                 {m.content && <p className={m.imageUrl ? "mt-2" : ""}>{m.content}</p>}
                             </div>
@@ -116,6 +119,8 @@ function MessageList({ messages, myId, endRef }) {
             })}
             <li ref={endRef} aria-hidden="true" />
         </ol>
+        {previewMessage && <ChatPhotoPreview message={previewMessage} onClose={() => setPreviewMessage(null)} />}
+        </>
     );
 }
 
@@ -171,7 +176,7 @@ function Composer({ disabled, onSend }) {
                 <div className="mb-3 flex items-center gap-3">
                     <img src={preview} alt="Photo ready to send" className="h-20 w-20 rounded-lg object-cover" />
                     <span className="min-w-0 flex-1 truncate text-sm text-text-muted">{photo.name}</span>
-                    <button type="button" disabled={sending} onClick={() => { setPhoto(null); setPreview(null); }} className="text-sm font-medium text-red-700 disabled:opacity-50">Remove photo</button>
+                    <button type="button" disabled={sending} onClick={() => { setPhoto(null); setPreview(null); }} className="text-sm font-medium text-red-700 disabled:opacity-50 hover:opacity-50 hover:cursor-pointer hover:underline">Remove photo</button>
                 </div>
             )}
             {error && (
@@ -342,7 +347,7 @@ export default function BookingChatPage() {
                 </header>
 
                 <div className="thin-scrollbar flex flex-1 flex-col overflow-y-auto">
-                    <MessageList messages={messages} myId={user?.id} endRef={endRef} />
+                    <MessageList key={bookingId} messages={messages} myId={user?.id} endRef={endRef} />
                 </div>
 
                 {booking.canSend ? (
