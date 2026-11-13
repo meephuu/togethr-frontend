@@ -3,6 +3,8 @@ import { BASE_URL } from './helpers/env';
 
 export default defineConfig({
   testDir: './tests',
+  // The full test plan has its own config (playwright.test-plan.config.ts, npm run test:plan)
+  testIgnore: '**/test-plan/**',
   globalSetup: require.resolve('./global-setup'),
 
   // The specs share one account and run in a fixed order: login.spec.ts needs

@@ -26,12 +26,12 @@ export interface MailpitMessage {
   HTML: string;
 }
 
-/** The newest message sent to `address`, or null if the inbox has none. */
-export async function getLatestMessage(address: string): Promise<MailpitMessage | null> {
+/** Messages sent to exactly `address`, newest first (at most `limit`). */
+async function searchTo(address: string, limit: number): Promise<MessageSummary[]> {
   const api = await request.newContext();
   try {
     const search = await api
-      .get(`${MAILPIT_URL}/api/v1/search`, { params: { query: `to:"${address}"`, limit: 50 } })
+      .get(`${MAILPIT_URL}/api/v1/search`, { params: { query: `to:"${address}"`, limit } })
       .catch((err: Error) => {
         throw new Error(
           `Cannot reach Mailpit at ${MAILPIT_URL}. Start it with "docker compose --profile test up -d" ` +
@@ -45,17 +45,42 @@ export async function getLatestMessage(address: string): Promise<MailpitMessage 
     // Mailpit lists newest first. "to:" also matches partial addresses, so keep exact matches only.
     const { messages } = (await search.json()) as { messages: MessageSummary[] };
     const wanted = address.toLowerCase();
-    const latest = messages.find((m) => m.To.some((to) => to.Address.toLowerCase() === wanted));
-    if (!latest) return null;
+    return messages.filter((m) => m.To.some((to) => to.Address.toLowerCase() === wanted));
+  } finally {
+    await api.dispose();
+  }
+}
 
-    const full = await api.get(`${MAILPIT_URL}/api/v1/message/${latest.ID}`);
+/** One full message by its Mailpit id. */
+export async function getMessage(id: string): Promise<MailpitMessage> {
+  const api = await request.newContext();
+  try {
+    const full = await api.get(`${MAILPIT_URL}/api/v1/message/${id}`);
     if (!full.ok()) {
-      throw new Error(`Mailpit could not return message ${latest.ID}: ${full.status()}`);
+      throw new Error(`Mailpit could not return message ${id}: ${full.status()}`);
     }
     return (await full.json()) as MailpitMessage;
   } finally {
     await api.dispose();
   }
+}
+
+/** The newest message sent to `address`, or null if the inbox has none. */
+export async function getLatestMessage(address: string): Promise<MailpitMessage | null> {
+  const [latest] = await searchTo(address, 50);
+  return latest ? getMessage(latest.ID) : null;
+}
+
+/** Ids of the messages sent to `address`, newest first. Take this before an action. */
+export async function listMessageIds(address: string): Promise<string[]> {
+  return (await searchTo(address, 500)).map((m) => m.ID);
+}
+
+/** Messages to `address` that are not in `knownIds` (from listMessageIds), newest first. */
+export async function newMessagesTo(address: string, knownIds: string[]): Promise<MailpitMessage[]> {
+  const known = new Set(knownIds);
+  const fresh = (await searchTo(address, 500)).filter((m) => !known.has(m.ID));
+  return Promise.all(fresh.map((m) => getMessage(m.ID)));
 }
 
 /**
