@@ -3,3 +3,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Test-plan runner: intermediate files (results/test-plan-results.md is kept)
+results/.raw-results.jsonl
+results/.run-state.json
