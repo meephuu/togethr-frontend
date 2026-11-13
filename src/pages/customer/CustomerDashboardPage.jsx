@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import Navbar from '../../components/ui/Navbar';
+import Toast from '../../components/ui/Toast';
 import CustomerTabs from '../../components/customer/CustomerTabs';
 import ServiceCard from '../../components/search/ServiceCard';
 import Button from '../../components/ui/Button';
@@ -57,8 +58,19 @@ function TypewriterHeading() {
 
 export default function CustomerDashboardPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [topPicks, setTopPicks] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Set by SignUpPage after registering (US1-1, TC01). Copied into state so the
+    // history entry can be cleared below and a reload doesn't show the toast again.
+    const [justRegistered, setJustRegistered] = useState(() => location.state?.registered === true);
+
+    useEffect(() => {
+        if (location.state?.registered) {
+            navigate(location.pathname, { replace: true, state: null });
+        }
+    }, [location.pathname, location.state, navigate]);
 
     useEffect(() => {
         const fetchTopPicks = async () => {
@@ -96,6 +108,12 @@ export default function CustomerDashboardPage() {
             <Navbar>
                 <CustomerTabs />
             </Navbar>
+
+            {justRegistered && (
+                <Toast title="Registration successful" onDismiss={() => setJustRegistered(false)}>
+                    <p className="text-text-muted">Welcome to Togethr. You're signed in and ready to book.</p>
+                </Toast>
+            )}
 
             <main className="flex-1 flex flex-col pt-16 pb-24">
                 {/* Hero Section */}
