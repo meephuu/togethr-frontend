@@ -151,7 +151,7 @@ How some inputs are handled:
   to the backend.
 - **TC35:** "T3 still usable" is checked without using T3 up: the token row is unused and
   not expired.
-- **TC59** ("After TC65") runs in the US6-4 spec right after TC65, but is reported under
+- **TC59** ("Run after TC65 (US6-4)") runs in the US6-4 spec right after TC65, but is reported under
   US6-3.
 - **Missing ids:** `SV-999`, `SL-999` and `BK-9999` are sent as those literal strings. Ids
   are plain text, so they match nothing.

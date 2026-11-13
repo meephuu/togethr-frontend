@@ -1,8 +1,8 @@
 # Test plan results
 
-Run 2026-11-13T06:32:55.210Z against http://localhost:5183 (frontend), http://localhost:8091/api (API), database `deawkoykid_tmp_20261113133214`.
+Run 2026-11-13T09:55:51.988Z against http://localhost:5183 (frontend), http://localhost:8091/api (API), database `deawkoykid_tmp_20261113165458`.
 
-**70 of 71 passed.**
+**71 of 71 passed.**
 
 P = the actual output matches the expected output exactly; F = it does not.
 
@@ -63,7 +63,7 @@ P = the actual output matches the expected output exactly; F = it does not.
 | TC53 | 404 “Booking not found.” | P |
 | TC54 | 409 “This request has expired”; status saved as "EXPIRED" | P |
 | TC55 | 409 “Only a booking waiting for confirmation can be confirmed or rejected.” | P |
-| TC56 | 200; newest item type "BOOKING_EXPIRED", message “Your booking for "Chiang Mai Old Town Walk" on 2026-12-02 expired without a response.”, isRead false; somchai@gmail.com receives an email “Your booking status has changed” containing the same message; somsri (the actor) gets no BOOKING_CONFIRMED | F |
+| TC56 | 200; contains type "BOOKING_CONFIRMED", message “Your booking for "Chiang Mai Old Town Walk" on 2026-12-01 was confirmed.”, isRead false; somchai@gmail.com receives an email “Your booking status has changed” containing the same message; somsri (the actor) gets no BOOKING_CONFIRMED | P |
 | TC57 | 200; contains type "BOOKING_REJECTED" with “Your booking for "Chiang Mai Old Town Walk" on 2026-12-04 was rejected.” | P |
 | TC58 | somchai gets type "BOOKING_EXPIRED" “Your booking for "Chiang Mai Old Town Walk" on 2026-12-02 expired without a response.”; somsri gets type "BOOKING_EXPIRED" “The booking for "Chiang Mai Old Town Walk" on 2026-12-02 expired without a response.” | P |
 | TC59 | somsri receives "BOOKING_CANCELLED" “The booking for "Chiang Mai Old Town Walk" on 2026-11-25 was cancelled.”; somchai (the actor) receives none | P |
@@ -88,5 +88,5 @@ P = the actual output matches the expected output exactly; F = it does not.
 - US1-5 (TC27–TC35): P, P, P, P, P, P, P, P, P
 - US6-1 (TC36–TC48): P, P, P, P, P, P, P, P, P, P, P, P, P
 - US6-2 (TC49–TC55): P, P, P, P, P, P, P
-- US6-3 (TC56–TC64): F, P, P, P, P, P, P, P, P
+- US6-3 (TC56–TC64): P, P, P, P, P, P, P, P, P
 - US6-4 (TC65–TC71): P, P, P, P, P, P, P

@@ -18,10 +18,16 @@ test('TC56 - somchai is notified that BK-1001 was confirmed', apiCase('TC56', as
   const res = await call(somchai, 'GET', '/notifications');
   o.status(res, 200);
 
-  const newest = res.body?.notifications?.[0];
+  // Contains (not "is the newest"): TC50 and TC54 notify somchai after TC49
+  const items: any[] = res.body?.notifications ?? [];
+  const item =
+    items.find((n) => n.type === 'BOOKING_CONFIRMED' && n.message === confirmedBK1001) ??
+    items.find((n) => n.type === 'BOOKING_CONFIRMED');
   o.add(
-    newest ? `newest item type "${newest.type}", message ${quote(newest.message)}, isRead ${newest.isRead}` : 'no notifications',
-    newest?.type === 'BOOKING_CONFIRMED' && newest?.message === confirmedBK1001 && newest?.isRead === false,
+    item
+      ? `contains type "BOOKING_CONFIRMED", message ${quote(item.message)}, isRead ${item.isRead}`
+      : 'contains no type "BOOKING_CONFIRMED"',
+    item?.message === confirmedBK1001 && item?.isRead === false,
   );
 
   const before = getState().somchaiMailBeforeTC49;

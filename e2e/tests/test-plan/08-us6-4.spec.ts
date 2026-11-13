@@ -5,8 +5,8 @@ import { quote } from '../../helpers/plan/outcome';
 import { apiCase } from '../../helpers/plan/plan-test';
 import { seedId } from '../../helpers/plan/state';
 
-// US6-4 Customer cancels a confirmed booking (TC65–TC71), plus TC59 (US6-3), which the
-// plan runs "After TC65". PATCH /api/bookings/:id/cancel
+// US6-4 Customer cancels a confirmed booking (TC65–TC71), plus TC59 (US6-3), whose input
+// says "Run after TC65 (US6-4)". PATCH /api/bookings/:id/cancel
 test.describe.configure({ mode: 'serial' });
 
 const cancel = (ctx: Parameters<typeof call>[0], id: string) => call(ctx, 'PATCH', `/bookings/${id}/cancel`);
