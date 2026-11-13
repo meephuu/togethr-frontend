@@ -2,15 +2,11 @@
 // Always talks to the real backend, even with VITE_USE_MOCKS=true, because
 // a chat needs a real booking id and a second person on the other end.
 
-import { io } from "socket.io-client";
+import { connectSocket } from "./socket";
 import { OpenAPI } from "./generated";
 import { request } from "./generated/core/request";
 
 export { ApiError } from "./generated";
-
-// The socket lives on the API server's origin, without the /api prefix. Read
-// at connect time: api.js sets OpenAPI.BASE after this module may have loaded.
-const socketUrl = () => OpenAPI.BASE.replace(/\/api\/?$/, "");
 
 /**
  * Chat history for one booking, oldest first.
@@ -43,7 +39,7 @@ export function sendBookingPhoto(bookingId, image, content = "") {
  * both with an ack callback ({ ok, error?, message? }); listen to "chat:message".
  */
 export function connectChat() {
-    return io(socketUrl(), { withCredentials: true, transports: ["websocket", "polling"] });
+    return connectSocket();
 }
 
 /** Emits and resolves with the server's ack, or a timeout error after 8 s. */
