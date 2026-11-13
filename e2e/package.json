@@ -1,0 +1,16 @@
+{
+  "name": "togethr-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Automated black-box tests for Togethr (Playwright): login and password reset, test cases TC17, TC20, TC27-TC31",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.9.3"
+  }
+}
