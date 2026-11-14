@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { hasRole } from "../../lib/roles";
 import NotificationEmailSettings from "./NotificationEmailSettings";
+import { connectSocket } from "../../services/socket";
 import {
     getMyNotifications,
     markAllNotificationsRead,
     markNotificationRead,
+    USE_MOCKS,
 } from "../../services/sprint2Api";
 
-const NOTIFICATION_REFRESH_INTERVAL_MS = 15_000;
 
 function formatNotificationTime(value) {
     const elapsedSeconds = (new Date(value).getTime() - Date.now()) / 1000;
@@ -53,14 +54,19 @@ export default function NotificationBell() {
 
         let cancelled = false;
         let requestInFlight = false;
+        let refreshPending = false;
 
         const refreshNotifications = async (showError = false) => {
-            if (requestInFlight || document.visibilityState === "hidden") return;
+            if (cancelled || document.visibilityState === "hidden") return;
+            if (requestInFlight) {
+                refreshPending = true;
+                return;
+            }
 
             requestInFlight = true;
             try {
                 const items = await getMyNotifications();
-                if (!cancelled) {
+                if (!cancelled && !refreshPending) {
                     setLoadResult({ userId: user.id, reloadKey, status: "ready", notifications: items });
                     setRefreshError("");
                 }
@@ -69,11 +75,15 @@ export default function NotificationBell() {
                     if (showError) {
                         setLoadResult({ userId: user.id, reloadKey, status: "error", notifications: [] });
                     } else {
-                        setRefreshError("We couldn't refresh your notifications. We'll try again.");
+                        setRefreshError("We couldn't refresh your notifications. Reopen the panel to try again.");
                     }
                 }
             } finally {
                 requestInFlight = false;
+                if (refreshPending && !cancelled) {
+                    refreshPending = false;
+                    refreshNotifications();
+                }
             }
         };
 
@@ -84,14 +94,15 @@ export default function NotificationBell() {
         };
 
         refreshNotifications(true);
-        const refreshInterval = window.setInterval(
-            () => refreshNotifications(),
-            NOTIFICATION_REFRESH_INTERVAL_MS
-        );
+        const socket = USE_MOCKS ? null : connectSocket();
+        const refresh = () => refreshNotifications();
+        // Also fetch on reconnect to recover events missed while offline.
+        socket?.on("connect", refresh);
+        socket?.on("notifications:changed", refresh);
         document.addEventListener("visibilitychange", refreshWhenVisible);
         return () => {
             cancelled = true;
-            window.clearInterval(refreshInterval);
+            socket?.disconnect();
             document.removeEventListener("visibilitychange", refreshWhenVisible);
         };
     }, [user?.id, reloadKey]);
