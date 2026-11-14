@@ -10,7 +10,7 @@ import CancelBookingDialog from "../../components/booking/CancelBookingDialog";
 import CompleteBookingDialog from "../../components/booking/CompleteBookingDialog";
 import ReviewBookingDialog from "../../components/review/ReviewBookingDialog";
 import { StarRatingDisplay } from "../../components/review/StarRatingInput";
-import { AlertCircleIcon, CalendarIcon, CheckIcon, ClockIcon, MapPinIcon, StarFilledIcon } from "../../components/ui/Icons";
+import { AlertCircleIcon, CalendarIcon, CheckIcon, ClockIcon, MapPinIcon, MessageIcon, StarFilledIcon } from "../../components/ui/Icons";
 import { formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 import { getMyBookings } from "../../services/sprint2Api";
@@ -125,6 +125,7 @@ function BookingItem({ item, now, onCancel, onComplete, onReview }) {
     // Prefer the server's answer; fall back to the same rule it enforces
     const canComplete = inProgress && (item.canComplete ?? ended);
     const canReview = item.bookingStatus === "COMPLETED" && !item.review;
+    const hasChat = ["CONFIRMED", "IN_PROGRESS", "COMPLETED"].includes(item.bookingStatus);
     const pill = canComplete
         ? ENDED_PILL
         : started
@@ -189,6 +190,15 @@ function BookingItem({ item, now, onCancel, onComplete, onReview }) {
                             Confirm completion
                         </Button>
                     </>
+                )}
+                {hasChat && (
+                    <Link
+                        to={`/bookings/${item.id}/chat`}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-white hover:bg-primary-hover md:w-auto"
+                    >
+                        <MessageIcon size={16} />
+                        {item.bookingStatus === "COMPLETED" ? "View chat" : "Chat with provider"}
+                    </Link>
                 )}
                 {item.canCancel && (
                     <Button variant="secondary" className="w-full md:w-auto" onClick={() => onCancel(item)}>

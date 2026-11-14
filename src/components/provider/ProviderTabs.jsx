@@ -27,7 +27,10 @@ export default function ProviderTabs() {
         <nav aria-label="Provider sections" className="mx-auto max-w-7xl px-8">
             <div className="thin-scrollbar flex gap-8 overflow-x-auto border-t border-gray-100">
                 {tabs.map((tab) => {
-                    const active = tab.paths.includes(current);
+                    // /provider/services/:id/edit belongs to My services
+                    const active =
+                        tab.paths.includes(current) ||
+                        (tab.to === "/provider/services" && /^\/provider\/services\/[^/]+\/edit$/.test(current));
                     return (
                         <Link
                             key={tab.label}

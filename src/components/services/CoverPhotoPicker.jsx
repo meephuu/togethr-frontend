@@ -55,7 +55,7 @@ export default function CoverPhotoPicker({ file, previewUrl, error, onSelect, on
                 }}
             />
 
-            {file && previewUrl ? (
+            {previewUrl ? (
                 <>
                     <div className="relative" {...dropProps}>
                         <img
@@ -75,7 +75,8 @@ export default function CoverPhotoPicker({ file, previewUrl, error, onSelect, on
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="break-all text-sm text-text-muted">
-                            {file.name} · {formatFileSize(file.size)}
+                            {/* No file when editing: the preview is the photo already saved. */}
+                            {file ? `${file.name} · ${formatFileSize(file.size)}` : "Current cover photo"}
                         </span>
                         <div className="flex gap-3">
                             <Button type="button" variant="secondary" className="h-10" onClick={openPicker}>

@@ -76,11 +76,36 @@ export const MOCK_SCENARIOS = {
             network: "Network error",
         },
     },
+    editService: {
+        label: "Save service changes",
+        options: {
+            success: "Success (200)",
+            validation: "Validation errors (400)",
+            network: "Network error",
+        },
+    },
+    unpublishService: {
+        label: "Unpublish service",
+        options: {
+            success: "No pending requests (200)",
+            pending: "Has a pending request (409)",
+            network: "Network error",
+        },
+    },
     createReview: {
         label: "Submit review",
         options: {
             success: "Success (201)",
             already: "Already reviewed (409)",
+            network: "Network error",
+        },
+    },
+    providerReviews: {
+        label: "Provider reviews",
+        options: {
+            list: "Several pages",
+            few: "One page",
+            empty: "No reviews yet",
             network: "Network error",
         },
     },

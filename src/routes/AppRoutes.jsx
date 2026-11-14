@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import RoleRoute from "./RoleRoute";
+import SignedInRoute from "./SignedInRoute";
 import LoginPage from "../pages/public/LoginPage";
 import ProviderRegistrationPage from "../pages/public/ProviderRegistrationPage/ProviderRegistrationPage";
 import HomePage from "../pages/public/HomePage";
@@ -16,8 +17,10 @@ import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import MyBookingsPage from "../pages/customer/MyBookingsPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
+import EditServicePage from "../pages/provider/EditServicePage";
 import MyServicesPage from "../pages/provider/MyServicesPage";
 import BookingRequestsPage from "../pages/provider/BookingRequestsPage";
+import BookingChatPage from "../pages/shared/BookingChatPage";
 import ServiceDetailPage from "../pages/public/ServiceDetailPage";
 import MockScenarioSwitcher from "../components/dev/MockScenarioSwitcher";
 import { USE_MOCKS } from "../services/sprint2Api";
@@ -61,6 +64,11 @@ export default function AppRoutes() {
                 <Route path="/profile/:id" element={<PublicProfilePage />} />
                 <Route path="/services/:id" element={<ServiceDetailPage />} />
 
+                {/* customer or provider of the booking (checked by the API) */}
+                <Route element={<SignedInRoute />}>
+                    <Route path="/bookings/:id/chat" element={<BookingChatPage />} />
+                </Route>
+
                 {/* customer */}
                 <Route element={<RoleRoute allowedRole="CUSTOMER" />}>
                     <Route
@@ -86,6 +94,10 @@ export default function AppRoutes() {
                     <Route
                         path="/provider/services/new"
                         element={<CreateServicePage />}
+                    />
+                    <Route
+                        path="/provider/services/:id/edit"
+                        element={<EditServicePage />}
                     />
                     <Route
                         path="/provider/booking-requests"

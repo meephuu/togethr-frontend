@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import ProviderTabs from "../../components/provider/ProviderTabs";
 import Avatar from "../../components/ui/Avatar";
 import Button from "../../components/ui/Button";
 import Toast from "../../components/ui/Toast";
-import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon } from "../../components/ui/Icons";
+import { AlertCircleIcon, CalendarIcon, ClockIcon, MapPinIcon, MessageIcon } from "../../components/ui/Icons";
 import { formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 import { ApiError, getBookingRequests, updateBookingStatus } from "../../services/sprint2Api";
@@ -85,6 +86,7 @@ function RequestCard({ item, now, busy, error, onDecide }) {
     const status = effectiveStatus(item, now);
     const pill = STATUS_PILL[status] ?? { label: status, className: "bg-gray-100 text-text-muted" };
     const canDecide = status === WAITING;
+    const hasChat = status === "CONFIRMED" || status === "COMPLETED";
     const msLeft = item.respondBy ? new Date(item.respondBy).getTime() - now : null;
     const urgent = canDecide && msLeft !== null && msLeft < 3 * 60 * 60 * 1000;
     const { customer, service } = item;
@@ -173,6 +175,16 @@ function RequestCard({ item, now, busy, error, onDecide }) {
                             </Button>
                         </div>
                     </div>
+                )}
+
+                {hasChat && (
+                    <Link
+                        to={`/bookings/${item.id}/chat`}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 font-medium text-white hover:bg-primary-hover md:w-auto"
+                    >
+                        <MessageIcon size={16} />
+                        {status === "CONFIRMED" ? "Chat with customer" : "View chat"}
+                    </Link>
                 )}
 
                 {error && (
