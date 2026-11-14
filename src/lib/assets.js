@@ -5,5 +5,5 @@ import { OpenAPI } from "../services/generated";
 // "http://localhost:8081/api" + "/uploads/x.jpg" -> "http://localhost:8081/uploads/x.jpg".
 export function assetUrl(path) {
     if (!path) return null;
-    return new URL(path, OpenAPI.BASE).href;
+    return new URL(path, new URL(OpenAPI.BASE, window.location.origin)).href;
 }
