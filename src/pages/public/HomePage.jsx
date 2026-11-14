@@ -14,20 +14,20 @@ function HeroCollage() {
 
             {/* left card */}
             <figure className='absolute left-1/2 top-10 w-40 -translate-x-[110%] -rotate-6 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5 sm:top-16 sm:w-56 sm:-translate-x-[138%]'>
-                <img src={photo('service005')} alt='' className='h-52 w-full object-cover sm:h-72' />
+                <img src={photo('service010')} alt='' className='h-52 w-full object-cover sm:h-72' />
             </figure>
 
             {/* right card */}
             <figure className='absolute left-1/2 top-10 w-40 translate-x-[10%] rotate-6 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5 sm:top-16 sm:w-56 sm:translate-x-[38%]'>
-                <img src={photo('service007')} alt='' className='h-52 w-full object-cover sm:h-72' />
+                <img src={photo('service008')} alt='' className='h-52 w-full object-cover sm:h-72' />
             </figure>
 
             {/* centre card */}
             <figure className='absolute left-1/2 top-0 z-10 w-52 -translate-x-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5 sm:w-72'>
-                <img src={photo('service006')} alt='' className='h-60 w-full object-cover sm:h-80' />
+                <img src={photo('service003')} alt='' className='h-60 w-full object-cover sm:h-80' />
                 <figcaption className='flex items-center justify-between gap-3 px-4 py-3 text-left'>
                     <div className='min-w-0'>
-                        <p className='truncate text-sm font-semibold text-[#252a40]'>Night market walk</p>
+                        <p className='truncate text-sm font-semibold text-[#252a40]'>Street food tour</p>
                         <p className='text-xs text-gray-500'>Bangkok · 3 hours</p>
                     </div>
                     <span className='shrink-0 text-sm font-semibold text-blue-700'>฿450</span>
