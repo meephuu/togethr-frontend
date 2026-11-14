@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://togethr-backend-881996648465.asia-southeast1.run.app/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://togethr-backend-881996648465.asia-southeast1.run.app/uploads/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}

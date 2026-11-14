@@ -1,6 +1,8 @@
 import { OpenAPI } from "./generated";
 
-OpenAPI.BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+OpenAPI.BASE = import.meta.env.PROD
+    ? "/api"
+    : import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 OpenAPI.WITH_CREDENTIALS = true;
 OpenAPI.CREDENTIALS = "include";
 
