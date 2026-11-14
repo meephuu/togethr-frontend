@@ -1193,8 +1193,14 @@ components:
             avgRating:
               type: number
               nullable: true
+              description: The provider's average over all their services.
+        avgRating:
+          type: number
+          nullable: true
+          description: Average rating of this service's own reviews; null when it has none.
         reviewCount:
           type: integer
+          description: Number of reviews on this service.
 
     ProfilePhotoResponse:
       type: object

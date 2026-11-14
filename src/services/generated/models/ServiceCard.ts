@@ -19,6 +19,13 @@ export type ServiceCard = {
         profilePhotoUrl: string | null;
         avgRating: number | null;
     };
+    /**
+     * Average rating of this service's own reviews; null when it has none.
+     */
+    avgRating: number | null;
+    /**
+     * Number of reviews on this service.
+     */
     reviewCount: number;
 };
 
