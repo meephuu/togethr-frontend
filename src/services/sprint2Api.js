@@ -218,6 +218,40 @@ export async function getServiceById(id) {
     const { service } = await request(OpenAPI, { method: "GET", url: "/services/{id}", path: { id } });
     return service;
 }
+
+/**
+ * @typedef {Object} ProviderReview
+ * @property {string} id
+ * @property {string} author the customer's first name
+ * @property {number} rating 1-5
+ * @property {string|null} comment
+ * @property {string} date ISO timestamp
+ * @property {string} serviceTitle the reviewed service
+ */
+
+/**
+ * One page of the reviews on all of a provider's services, newest first, for
+ * the provider's public profile (US8-2). Public, no login needed.
+ * GET /api/providers/:id/reviews?page=1&limit=6
+ * → { reviews: ProviderReview[],
+ *     summary: { avgRating: number|null, reviewCount: number },
+ *     meta: { totalCount, currentPage, totalPages, limit } }
+ * - summary covers every review, not just this page; avgRating is null when
+ *   there are none
+ * - 404 when the user doesn't exist or isn't a provider
+ * @param {string} providerId
+ * @param {{ page?: number, limit?: number }} [options]
+ * @returns {Promise<{ reviews: ProviderReview[], summary: { avgRating: number|null, reviewCount: number }, meta: { totalCount: number, currentPage: number, totalPages: number, limit: number } }>}
+ */
+export async function getProviderReviews(providerId, { page = 1, limit = 6 } = {}) {
+    if (USE_MOCKS) return mocks.getProviderReviews(providerId, { page, limit });
+    return request(OpenAPI, {
+        method: "GET",
+        url: "/providers/{id}/reviews",
+        path: { id: providerId },
+        query: { page, limit },
+    });
+}
 /**
  * ส่งคำขอจอง slot ของ service (US6-1)
  * slot มาจาก getServiceById(id).availableSlots

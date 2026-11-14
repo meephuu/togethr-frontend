@@ -629,3 +629,56 @@ export async function createReview({ bookingId, rating, comment }) {
     item.review = { rating: review.rating, comment: review.comment, timestamp: review.timestamp };
     return { review, provider: { id: item.provider.id, avgRating: rating, reviewCount: 1 } };
 }
+
+// ---------------------------------------------------------------------------
+// Provider reviews on the public profile (US8-2)
+// ---------------------------------------------------------------------------
+
+const REVIEW_AUTHORS = ["Nina", "Tom", "Ploy", "Ben", "Fah", "Sam", "Mint", "Anan"];
+const REVIEW_COMMENTS = [
+    "Knew every hidden food stall in the area. Would book again!",
+    "Friendly, on time and very patient with our questions.",
+    null,
+    "Great photo spots, a bit rushed at the end.",
+    "Made us feel like locals for a day.",
+    "Good trip overall, but we started late.",
+];
+const REVIEW_SERVICES = ["Old Town street food walk", "Temple morning photo walk"];
+
+// 14 reviews, newest first, so the default page size gives three pages
+const providerReviews = Array.from({ length: 14 }, (_, i) => ({
+    id: `mock-review-${i + 1}`,
+    author: REVIEW_AUTHORS[i % REVIEW_AUTHORS.length],
+    rating: [5, 5, 4, 4, 5, 3][i % 6],
+    comment: REVIEW_COMMENTS[i % REVIEW_COMMENTS.length],
+    date: new Date(Date.now() - (i * 5 + 1) * 24 * 60 * 60 * 1000).toISOString(),
+    serviceTitle: REVIEW_SERVICES[i % REVIEW_SERVICES.length],
+}));
+
+export async function getProviderReviews(providerId, { page = 1, limit = 6 } = {}) {
+    await wait();
+    let all;
+    switch (getMockScenario("providerReviews")) {
+        case "network":
+            throw networkError();
+        case "empty":
+            all = [];
+            break;
+        case "few":
+            all = providerReviews.slice(0, 3);
+            break;
+        default:
+            all = providerReviews;
+    }
+    const totalPages = Math.max(1, Math.ceil(all.length / limit));
+    const currentPage = Math.min(Math.max(1, page), totalPages);
+    const sum = all.reduce((total, review) => total + review.rating, 0);
+    return {
+        reviews: all.slice((currentPage - 1) * limit, currentPage * limit),
+        summary: {
+            avgRating: all.length ? Math.round((sum / all.length) * 10) / 10 : null,
+            reviewCount: all.length,
+        },
+        meta: { totalCount: all.length, currentPage, totalPages, limit },
+    };
+}
