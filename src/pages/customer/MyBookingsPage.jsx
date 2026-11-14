@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import CustomerTabs from "../../components/customer/CustomerTabs";
 import Avatar from "../../components/ui/Avatar";
@@ -11,9 +11,9 @@ import CompleteBookingDialog from "../../components/booking/CompleteBookingDialo
 import ReviewBookingDialog from "../../components/review/ReviewBookingDialog";
 import { StarRatingDisplay } from "../../components/review/StarRatingInput";
 import { AlertCircleIcon, CalendarIcon, CheckIcon, ClockIcon, MapPinIcon, MessageIcon, StarFilledIcon } from "../../components/ui/Icons";
-import { formatBaht } from "../../lib/format";
+import { formatBaht, formatBookingDate } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
-import { getMyBookings } from "../../services/sprint2Api";
+import { getMyBookings, getMyComplaints } from "../../services/sprint2Api";
 
 // Customer's "My bookings" page (US6-4): upcoming and past bookings, and the
 // entry point for cancelling a confirmed booking, confirming a finished trip is
@@ -48,17 +48,6 @@ const EMPTY_TEXT = {
     upcoming: "You have no upcoming bookings.",
     past: "Finished, cancelled, rejected and expired bookings will show up here.",
 };
-
-// "YYYY-MM-DD" read as UTC so the day doesn't shift with the viewer's timezone
-function formatDate(date) {
-    return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        timeZone: "UTC",
-    });
-}
 
 function minutesOf(time) {
     const [h, m] = time.split(":").map(Number);
@@ -115,7 +104,7 @@ function markReviewed(lists, id, review) {
 
 // ---------- one booking ----------
 
-function BookingItem({ item, now, onCancel, onComplete, onReview }) {
+function BookingItem({ item, now, tab, hasComplaint, onCancel, onComplete, onReview }) {
     const { service, provider } = item;
     // The server only allows cancelling a confirmed booking before it starts
     const started = item.bookingStatus === "CONFIRMED" && !item.canCancel;
@@ -146,7 +135,7 @@ function BookingItem({ item, now, onCancel, onComplete, onReview }) {
                     <ul className="flex flex-col gap-1.5 text-sm text-text-muted sm:flex-row sm:flex-wrap sm:gap-x-5">
                         <li className="flex items-center gap-1.5">
                             <CalendarIcon size={15} />
-                            {formatDate(item.appointmentDate)}
+                            {formatBookingDate(item.appointmentDate)}
                         </li>
                         <li className="flex items-center gap-1.5">
                             <ClockIcon size={15} />
@@ -223,6 +212,19 @@ function BookingItem({ item, now, onCancel, onComplete, onReview }) {
                                 “{item.review.comment}”
                             </p>
                         )}
+                <Link
+                    to={`/customer/bookings/${encodeURIComponent(item.id)}/complaint`}
+                    state={{ tab }}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-medium text-primary hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                    Report an issue
+                </Link>
+                {hasComplaint && (
+                    <Link to={`/customer/complaints?bookingId=${encodeURIComponent(item.id)}`}
+                        className="text-center text-sm font-medium text-primary underline">
+                        View reported issues
+                    </Link>
+                )}
                     </div>
                 )}
             </div>
@@ -265,9 +267,11 @@ function LoadError({ onRetry }) {
 // ---------- page ----------
 
 export default function MyBookingsPage() {
+    const { state } = useLocation();
     const [result, setResult] = useState({ status: "loading", upcoming: [], past: [] }); // loading | error | ready
     const [reloadKey, setReloadKey] = useState(0);
-    const [tab, setTab] = useState("upcoming");
+    const [tab, setTab] = useState(state?.tab === "past" ? "past" : "upcoming");
+    const [reportedBookings, setReportedBookings] = useState(() => new Set());
     const [cancelling, setCancelling] = useState(null); // the booking whose dialog is open
     const [completing, setCompleting] = useState(null); // the booking being confirmed complete
     const [reviewing, setReviewing] = useState(null); // the booking being reviewed
@@ -277,6 +281,9 @@ export default function MyBookingsPage() {
 
     useEffect(() => {
         let ignore = false;
+        getMyComplaints().then((complaints) => {
+            if (!ignore) setReportedBookings(new Set(complaints.map((complaint) => complaint.bookingId)));
+        }).catch(() => {});
         getMyBookings()
             .then(({ upcoming, past }) => {
                 if (!ignore) setResult({ status: "ready", upcoming, past });
@@ -362,7 +369,7 @@ export default function MyBookingsPage() {
                         {result.upcoming.length === 0
                             ? "Nothing coming up yet."
                             : nextConfirmed
-                              ? `Your next trip is ${nextConfirmed.service.title} on ${formatDate(nextConfirmed.appointmentDate)}.`
+                              ? `Your next trip is ${nextConfirmed.service.title} on ${formatBookingDate(nextConfirmed.appointmentDate)}.`
                               : "Your requests are waiting for the providers to answer."}{" "}
                         You can cancel a confirmed booking until it starts.
                     </p>
@@ -417,6 +424,8 @@ export default function MyBookingsPage() {
                         <BookingItem
                             key={item.id}
                             item={item}
+                            tab={tab}
+                            hasComplaint={reportedBookings.has(item.id)}
                             now={now}
                             onCancel={setCancelling}
                             onComplete={setCompleting}

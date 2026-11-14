@@ -15,6 +15,8 @@ import ProfileEditPage from "../pages/private/ProfileEditPage";
 import CookieConsentBanner from "../components/CookieConsentBanner";
 import CustomerDashboardPage from "../pages/customer/CustomerDashboardPage";
 import MyBookingsPage from "../pages/customer/MyBookingsPage";
+import ComplaintPage from "../pages/customer/ComplaintPage";
+import ComplaintsPage from "../pages/customer/ComplaintsPage";
 import ProviderDashboardPage from "../pages/provider/ProviderDashboardPage";
 import CreateServicePage from "../pages/provider/CreateServicePage";
 import EditServicePage from "../pages/provider/EditServicePage";
@@ -63,6 +65,10 @@ export default function AppRoutes() {
                 <Route path="/profile/edit" element={<ProfileEditPage />} />
                 <Route path="/profile/:id" element={<PublicProfilePage />} />
                 <Route path="/services/:id" element={<ServiceDetailPage />} />
+                <Route element={<RoleRoute allowedRole="ADMIN" />}>
+                    <Route path="/admin/complaints" element={<ComplaintsPage admin />} />
+                    <Route path="/admin/complaints/:id" element={<ComplaintsPage admin />} />
+                </Route>
 
                 {/* customer or provider of the booking (checked by the API) */}
                 <Route element={<SignedInRoute />}>
@@ -71,6 +77,8 @@ export default function AppRoutes() {
 
                 {/* customer */}
                 <Route element={<RoleRoute allowedRole="CUSTOMER" />}>
+                    <Route path="/customer/complaints" element={<ComplaintsPage />} />
+                    <Route path="/customer/complaints/:id" element={<ComplaintsPage />} />
                     <Route
                         path="/customer/dashboard"
                         element={<CustomerDashboardPage />}
@@ -78,6 +86,10 @@ export default function AppRoutes() {
                     <Route
                         path="/customer/bookings"
                         element={<MyBookingsPage />}
+                    />
+                    <Route
+                        path="/customer/bookings/:bookingId/complaint"
+                        element={<ComplaintPage />}
                     />
                 </Route>
 

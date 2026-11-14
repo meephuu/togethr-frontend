@@ -13,6 +13,7 @@ export default function CustomerTabs() {
         { label: "Home", to: "/customer/dashboard", paths: ["/customer/dashboard"] },
         { label: "Find Service", to: "/search", paths: ["/search"] },
         { label: "My Booking", to: "/customer/bookings", paths: ["/customer/bookings"] },
+        { label: "My complaints", to: "/customer/complaints", paths: ["/customer/complaints"] },
         {
             label: hasRole(user, "PROVIDER") ? "Switch to Provider Dashboard" : "Become a Provider",
             to: hasRole(user, "PROVIDER") ? DASHBOARD_BY_ROLE.PROVIDER : "/provider-registration",
@@ -37,7 +38,7 @@ export default function CustomerTabs() {
                         );
                     }
 
-                    const active = tab.paths.includes(current);
+                    const active = tab.paths.some((path) => current === path || current.startsWith(`${path}/`));
                     return (
                         <Link
                             key={tab.label}

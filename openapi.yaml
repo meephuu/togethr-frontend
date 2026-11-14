@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Togethr API
-  description: REST API for authentication and user profile management.
+  description: REST API for authentication, user profiles, and booking complaints.
   version: 1.0.0
 servers:
   - url: http://localhost:8080/api
@@ -12,8 +12,200 @@ tags:
     description: Registration and authentication
   - name: Users
     description: User profile management
+  - name: Complaints
+    description: Booking complaints
 
 paths:
+  /complaints:
+    post:
+      tags: [Complaints]
+      operationId: submitComplaint
+      summary: Submit a complaint about the signed-in customer's booking
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [bookingId, category, subject, description]
+              properties:
+                bookingId:
+                  type: string
+                category:
+                  $ref: "#/components/schemas/ComplaintCategory"
+                subject:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                attachments:
+                  type: array
+                  maxItems: 5
+                  description: Nonempty JPG, PNG, or PDF files, up to 10 MiB each.
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "201":
+          description: Complaint submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/Complaint"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: The booking belongs to another customer
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          description: An attachment exceeds 10 MiB
+        "415":
+          description: Request content type must be multipart/form-data
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /complaints/me:
+    get:
+      tags: [Complaints]
+      operationId: listMyComplaints
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaints]
+                properties:
+                  complaints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ComplaintSummary"
+
+  /complaints/admin:
+    get:
+      tags: [Complaints]
+      operationId: listAdminComplaints
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaints]
+                properties:
+                  complaints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ComplaintSummary"
+
+  /complaints/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Complaints]
+      operationId: getMyComplaint
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint details
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/ComplaintDetails"
+
+  /complaints/admin/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Complaints]
+      operationId: getAdminComplaint
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaint details
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/ComplaintDetails"
+    patch:
+      tags: [Complaints]
+      operationId: updateAdminComplaint
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expectedStatus, expectedUpdatedAt, status, adminReply]
+              properties:
+                expectedStatus:
+                  $ref: "#/components/schemas/ComplaintStatus"
+                expectedUpdatedAt:
+                  type: string
+                  format: date-time
+                status:
+                  $ref: "#/components/schemas/ComplaintStatus"
+                adminReply:
+                  type: string
+                  maxLength: 2000
+      responses:
+        "200":
+          description: Complaint updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [complaint]
+                properties:
+                  complaint:
+                    $ref: "#/components/schemas/ComplaintDetails"
+        "409":
+          description: Complaint was changed by another reviewer
+
   /auth/register:
     post:
       tags: [Auth]
@@ -424,6 +616,85 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
 
   schemas:
+    ComplaintCategory:
+      type: string
+      enum: [PAYMENT, CANCELLATION_OR_REFUND, PROVIDER_NO_SHOW, SERVICE_NOT_AS_DESCRIBED, OTHER]
+    ComplaintStatus:
+      type: string
+      enum: [PENDING, IN_PROGRESS, RESOLVED, CLOSED]
+    ComplaintSummary:
+      type: object
+      required: [id, bookingId, category, subject, status, createdAt, booking]
+      properties:
+        id:
+          type: string
+        bookingId:
+          type: string
+        category:
+          $ref: "#/components/schemas/ComplaintCategory"
+        subject:
+          type: string
+        status:
+          $ref: "#/components/schemas/ComplaintStatus"
+        createdAt:
+          type: string
+          format: date-time
+        booking:
+          type: object
+          required: [service]
+          properties:
+            service:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+    ComplaintDetails:
+      allOf:
+        - $ref: "#/components/schemas/Complaint"
+        - $ref: "#/components/schemas/ComplaintSummary"
+        - type: object
+          required: [adminReply]
+          properties:
+            adminReply:
+              type: string
+              nullable: true
+    Complaint:
+      type: object
+      required: [id, bookingId, category, subject, description, status, createdAt, updatedAt, attachments]
+      properties:
+        id:
+          type: string
+        bookingId:
+          type: string
+        category:
+          $ref: "#/components/schemas/ComplaintCategory"
+        subject:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: "#/components/schemas/ComplaintStatus"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        attachments:
+          type: array
+          items:
+            type: object
+            required: [id, originalName, mimeType, sizeBytes]
+            properties:
+              id:
+                type: string
+              originalName:
+                type: string
+              mimeType:
+                type: string
+              sizeBytes:
+                type: integer
     ErrorResponse:
       type: object
       required: [error]
@@ -437,7 +708,7 @@ components:
 
     UserRole:
       type: string
-      enum: [CUSTOMER, PROVIDER]
+      enum: [CUSTOMER, PROVIDER, ADMIN]
       description: A profile the account holds.
 
     BaseRegistrationFields:

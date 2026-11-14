@@ -5,7 +5,7 @@
 // Errors: an HTTP error rejects with ApiError (check `.status` and `.body`);
 // a network failure rejects with a plain Error. Same as the generated client.
 
-import { ApiError, OpenAPI } from "./generated";
+import { ApiError, ComplaintsService, OpenAPI } from "./generated";
 import { request } from "./generated/core/request";
 import * as mocks from "./sprint2Mocks";
 
@@ -351,6 +351,47 @@ export async function updateBookingStatus(bookingId, status) {
 export async function getMyBookings() {
     if (USE_MOCKS) return mocks.getMyBookings();
     return request(OpenAPI, { method: "GET", url: "/bookings/me" });
+}
+
+export async function submitComplaint(formData) {
+    if (USE_MOCKS) {
+        const { bookingId, category, subject, description } = formData;
+        const { upcoming, past } = await getMyBookings();
+        const booking = [...upcoming, ...past].find((item) => item.id === bookingId);
+        if (!booking) throw new Error("Booking not found");
+        const now = new Date().toISOString();
+        const complaint = {
+            id: `demo-${crypto.randomUUID()}`, bookingId, category, subject, description,
+            status: "PENDING", createdAt: now, updatedAt: now, adminReply: null,
+            booking: { service: { title: booking.service.title } }, attachments: [],
+        };
+        sessionStorage.setItem("mockComplaints", JSON.stringify([complaint, ...mockComplaints()]));
+        return complaint;
+    }
+
+    const { complaint } = await ComplaintsService.submitComplaint({ formData });
+    return complaint;
+}
+
+function mockComplaints() {
+    return JSON.parse(sessionStorage.getItem("mockComplaints") || "[]");
+}
+
+export async function getMyComplaints() {
+    if (USE_MOCKS) return mockComplaints();
+    const { complaints } = await ComplaintsService.listMyComplaints();
+    return complaints;
+}
+
+export async function getMyComplaint(id) {
+    if (USE_MOCKS) return mockComplaints().find((complaint) => complaint.id === id);
+    const { complaint } = await ComplaintsService.getMyComplaint({ id });
+    return complaint;
+}
+
+export function complaintAttachmentUrl(id, attachmentId, admin) {
+    const base = OpenAPI.BASE.replace(/\/$/, "");
+    return `${base}/complaints/${admin ? "admin/" : ""}${encodeURIComponent(id)}/attachments/${encodeURIComponent(attachmentId)}`;
 }
 
 /**

@@ -1,5 +1,15 @@
 export const RATE_UNIT_LABEL = { hour: "hour", day: "day" };
 
+export function formatBookingDate(date) {
+    return new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+    });
+}
+
 // "฿2,200" — whole baht stay whole, satang show up to 2 decimals.
 export function formatBaht(amount) {
     const value = Number(amount);
