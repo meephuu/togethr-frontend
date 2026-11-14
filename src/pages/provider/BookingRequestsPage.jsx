@@ -59,8 +59,11 @@ function formatDate(date) {
 // 5h 20m / 45m
 function formatDuration(ms) {
     const minutes = Math.max(1, Math.round(ms / 60000));
-    const hours = Math.floor(minutes / 60);
-    return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+    const days = Math.floor(minutes / 1440);
+    const hours = Math.floor((minutes % 1440) / 60);
+    const mins = minutes % 60;
+    if (days > 0) return `${days}d ${hours}h ${mins}m`;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
 }
 
 function timeAgo(iso, now) {

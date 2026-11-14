@@ -166,15 +166,15 @@ export default function ReviewBookingDialog({ booking, onClose, onReviewed, onAl
                 </div>
 
                 {/* ===== footer ===== */}
-                <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-6 py-4">
-                    <p className="text-xs text-text-muted">You can review each booking once.</p>
-                    <div className="flex gap-3">
-                        <Button type="button" variant="secondary" className="h-10" onClick={close} disabled={isSubmitting}>
+                <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-gray-100 px-6 py-4">
+                    <p className="min-w-[10rem] flex-1 text-xs text-text-muted">You can review each booking once.</p>
+                    <div className="flex shrink-0 gap-3">
+                        <Button type="button" variant="secondary" className="h-10 whitespace-nowrap" onClick={close} disabled={isSubmitting}>
                             Not now
                         </Button>
                         <Button
                             type="submit"
-                            className="h-10 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="h-10 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={!canSubmit}
                         >
                             {isSubmitting ? "Submitting…" : "Submit review"}

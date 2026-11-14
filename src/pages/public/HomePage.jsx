@@ -3,6 +3,74 @@ import Navbar from '../../components/ui/Navbar'
 import Footer from '../../components/ui/Footer'
 import { assetUrl } from '../../lib/assets'
 
+// Fanned photo cards with floating pieces of the real product (booking, chat, review)
+function HeroCollage() {
+    const photo = (name) => assetUrl(`/uploads/services-cover-photo/${name}.jpg`)
+
+    return (
+        <div className='relative mx-auto mt-16 h-[26rem] w-full max-w-4xl sm:mt-20 sm:h-[31rem]' aria-hidden='true'>
+            {/* soft glow behind the cards */}
+            <div className='absolute left-1/2 top-1/2 h-72 w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-100 blur-3xl sm:h-96' />
+
+            {/* left card */}
+            <figure className='absolute left-1/2 top-10 w-40 -translate-x-[110%] -rotate-6 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5 sm:top-16 sm:w-56 sm:-translate-x-[138%]'>
+                <img src={photo('service010')} alt='' className='h-52 w-full object-cover sm:h-72' />
+            </figure>
+
+            {/* right card */}
+            <figure className='absolute left-1/2 top-10 w-40 translate-x-[10%] rotate-6 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5 sm:top-16 sm:w-56 sm:translate-x-[38%]'>
+                <img src={photo('service008')} alt='' className='h-52 w-full object-cover sm:h-72' />
+            </figure>
+
+            {/* centre card */}
+            <figure className='absolute left-1/2 top-0 z-10 w-52 -translate-x-1/2 overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5 sm:w-72'>
+                <img src={photo('service003')} alt='' className='h-60 w-full object-cover sm:h-80' />
+                <figcaption className='flex items-center justify-between gap-3 px-4 py-3 text-left'>
+                    <div className='min-w-0'>
+                        <p className='truncate text-sm font-semibold text-[#252a40]'>Street food tour</p>
+                        <p className='text-xs text-gray-500'>Bangkok · 3 hours</p>
+                    </div>
+                    <span className='shrink-0 text-sm font-semibold text-blue-700'>฿450</span>
+                </figcaption>
+            </figure>
+
+            {/* booking confirmed */}
+            <div className='absolute left-1 top-24 z-20 flex items-center gap-3 rounded-2xl bg-white px-3.5 py-3 text-left shadow-xl ring-1 ring-black/5 sm:left-6 sm:top-36'>
+                <span className='flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-green-700'>
+                    <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'><path d='M20 6 9 17l-5-5' /></svg>
+                </span>
+                <div>
+                    <p className='text-sm font-semibold text-[#252a40]'>Booking confirmed</p>
+                    <p className='text-xs text-gray-500'>Sat, 10:00 – 13:00</p>
+                </div>
+            </div>
+
+            {/* rating */}
+            <div className='absolute right-1 top-4 z-20 hidden items-center gap-2 rounded-full bg-white px-4 py-2.5 shadow-xl ring-1 ring-black/5 sm:right-6 sm:top-10 sm:flex'>
+                <svg width='16' height='16' viewBox='0 0 24 24' fill='#f97316'><path d='m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z' /></svg>
+                <span className='text-sm font-semibold text-[#252a40]'>4.9</span>
+                <span className='text-xs text-gray-500'>128 reviews</span>
+            </div>
+
+            {/* chat */}
+            <div className='absolute bottom-0 right-0 z-20 flex max-w-[15rem] flex-col gap-2 text-left sm:bottom-8 sm:right-4'>
+                <p className='self-start rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-sm text-[#252a40] shadow-xl ring-1 ring-black/5'>
+                    Meet you at the pier at 10?
+                </p>
+                <p className='self-end rounded-2xl rounded-br-md bg-blue-600 px-4 py-2.5 text-sm text-white shadow-xl'>
+                    Perfect, see you there!
+                </p>
+            </div>
+
+            {/* verified guide */}
+            <div className='absolute bottom-6 left-0 z-20 hidden items-center gap-2 rounded-full bg-[#252a40] px-4 py-2.5 text-sm font-medium text-white shadow-xl sm:left-10 sm:bottom-14 sm:flex'>
+                <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='#93c5fd' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><path d='M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z' /><path d='m9 12 2 2 4-4' /></svg>
+                Verified local guide
+            </div>
+        </div>
+    )
+}
+
 export default function HomePage() {
     const navigate = useNavigate()
 
@@ -11,7 +79,7 @@ export default function HomePage() {
             <Navbar />
 
             {/* Hero Section */}
-            <section className='px-4 py-20'>
+            <section className='overflow-hidden px-4 pt-20 pb-24 sm:pt-24 sm:pb-32'>
                 <div className='max-w-4xl mx-auto text-center'>
                     <h1 className='text-5xl font-bold text-gray-900 mb-6'>
                         Don’t let the fear of <br />traveling alone keep you <br />from the world.
@@ -34,6 +102,8 @@ export default function HomePage() {
                         </button>
                     </div>
                 </div>
+
+                <HeroCollage />
             </section>
 
             <section className='px-6 py-20 sm:px-8 sm:py-28 bg-blue-50'>

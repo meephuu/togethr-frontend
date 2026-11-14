@@ -5,11 +5,13 @@ import { assetUrl } from "../../lib/assets";
 
 export default function ServiceCard({ service }) {
     // service has: id, title, location, rate, rateUnit, coverPhotoUrl,
-    // provider (firstname, lastname, avgRating, profilePhotoUrl), reviewCount
+    // provider (firstname, lastname, profilePhotoUrl), avgRating and reviewCount
+    // (both for this service's own reviews, like the service page)
     const imageUrl =
         assetUrl(service.coverPhotoUrl) ?? "https://placehold.co/600x400/e2e8f0/64748b?text=No+image";
 
-    const hasReviews = service.provider.avgRating !== null && service.reviewCount > 0;
+    const avgRating = service.avgRating ?? service.provider.avgRating;
+    const hasReviews = avgRating != null && service.reviewCount > 0;
     
     return (
         // Stretched link: the title's ::after covers the whole card, and the
@@ -49,7 +51,7 @@ export default function ServiceCard({ service }) {
                     {hasReviews ? (
                         <div className="flex items-center gap-1">
                             <StarFilledIcon size={14} className="text-[#E7711B]" />
-                            <span className="text-[15px] font-bold text-text-main">{service.provider.avgRating.toFixed(1)}</span>
+                            <span className="text-[15px] font-bold text-text-main">{Number(avgRating).toFixed(1)}</span>
                             <span className="text-[15px] text-text-muted">({service.reviewCount})</span>
                         </div>
                     ) : (

@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import PageShell from "../../components/ui/PageShell";
 import ProviderTabs from "../../components/provider/ProviderTabs";
 import Button from "../../components/ui/Button";
-import ComingSoon from "../../components/ui/ComingSoon";
 import Toast from "../../components/ui/Toast";
 import { AlertCircleIcon, BriefcaseIcon, PlusIcon } from "../../components/ui/Icons";
 import ServiceStatusPill from "../../components/services/ServiceStatusPill";
@@ -72,7 +71,6 @@ function ServicesTable({ services, onAvailability }) {
                                 </td>
                                 <td className={`${CELL_CLASS} text-right text-sm font-semibold`}>
                                     <div className="flex justify-end gap-5">
-                                        <ComingSoon>View</ComingSoon>
                                         <Link
                                             to={`/provider/services/${service.id}/edit`}
                                             className="font-semibold text-primary hover:text-primary-hover hover:underline"
