@@ -8,7 +8,7 @@ import { CalendarIcon, PlusIcon } from "../../components/ui/Icons";
 import ServiceStatusPill from "../../components/services/ServiceStatusPill";
 import ServiceThumbnail from "../../components/services/ServiceThumbnail";
 import { useAuth } from "../../hooks/useAuth";
-import { getMyServices } from "../../services/sprint2Api";
+import { getBookingRequests, getMyServices } from "../../services/sprint2Api";
 import { RATE_UNIT_LABEL, formatBaht } from "../../lib/format";
 import { CARD_CLASS } from "../../lib/styles";
 
@@ -157,6 +157,30 @@ export default function ProviderDashboardPage() {
         };
     }, [reloadKey]);
 
+    // Requests still waiting for an answer (the same ones the Booking requests page shows)
+    const [requestsResult, setRequestsResult] = useState({ status: "loading", waiting: 0 });
+    useEffect(() => {
+        let cancelled = false;
+        getBookingRequests()
+            .then((items) => {
+                const now = Date.now();
+                const waiting = items.filter(
+                    (item) =>
+                        item.bookingStatus === "WAITING_FOR_CONFIRMATION" &&
+                        !(item.respondBy && new Date(item.respondBy).getTime() <= now),
+                ).length;
+                if (!cancelled) setRequestsResult({ status: "ready", waiting });
+            })
+            .catch(() => {
+                if (!cancelled) setRequestsResult({ status: "error", waiting: 0 });
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+    const waitingValue =
+        requestsResult.status === "loading" ? null : requestsResult.status === "error" ? "—" : requestsResult.waiting;
+
     const retryServices = () => {
         setServicesResult({ status: "loading", services: [] });
         setReloadKey((key) => key + 1);
@@ -205,7 +229,11 @@ export default function ProviderDashboardPage() {
                         services.reduce((sum, service) => sum + (service.bookingsThisMonth ?? 0), 0),
                     )}
                 />
-                <StatCard label="Requests waiting for you" value="—" note="Coming soon" />
+                <StatCard
+                    label="Requests waiting for you"
+                    value={waitingValue}
+                    note={waitingValue > 0 ? "Answer within 24 hours" : undefined}
+                />
             </div>
 
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -223,6 +251,11 @@ export default function ProviderDashboardPage() {
                             }
                         />
                         <p className="border-t border-gray-100 pt-3 text-sm text-text-muted">
+                            {requestsResult.status === "ready" && requestsResult.waiting > 0 && (
+                                <strong className="mb-1 block text-text-main">
+                                    {count(requestsResult.waiting, "request")} waiting for your answer.
+                                </strong>
+                            )}
                             Accept or reject requests from customers. A request expires if you don't answer within 24 hours.
                         </p>
                     </section>
