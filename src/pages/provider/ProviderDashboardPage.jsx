@@ -174,7 +174,7 @@ export default function ProviderDashboardPage() {
             {publishedService && (
                 <Toast title="Service published" onDismiss={() => setPublishedService(null)}>
                     <p className="text-text-muted">“{publishedService.title}” is now live in search.</p>
-                    <Link to="/provider/services?availability=1" className={`${LINK_CLASS} mt-1.5`}>
+                    <Link to="/provider/services" className={`${LINK_CLASS} mt-1.5`}>
                         Set your availability
                     </Link>
                 </Toast>

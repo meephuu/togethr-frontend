@@ -261,7 +261,10 @@ paths:
       tags: [Auth]
       operationId: login
       summary: Log in with an email and password
-      description: Sets an HttpOnly `token` cookie when authentication succeeds.
+      description: >
+        Sets an HttpOnly `token` cookie when authentication succeeds. The 5th
+        wrong password in a row locks the account for 15 minutes (US1-3);
+        unknown and deleted accounts are never locked.
       requestBody:
         required: true
         content:
@@ -284,6 +287,12 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "423":
+          description: 'Account locked: "invalid email or password; the account is locked for 15 minutes" on the 5th failure, then "this account is temporarily locked; try again later" until the lock ends'
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "500":
           $ref: "#/components/responses/InternalServerError"
 

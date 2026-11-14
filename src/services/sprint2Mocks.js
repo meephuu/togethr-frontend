@@ -452,7 +452,11 @@ function mockBooking(id, status, daysFromToday, startTime, endTime, fields) {
     const [y, m, d] = appointmentDate.split("-").map(Number);
     const [hh, mm] = (startTime || "00:00").split(":").map(Number);
     const startsAt = new Date(y, m - 1, d, hh, mm).toISOString();
-    return { id, bookingStatus: status, appointmentDate, startTime, endTime, startsAt, ...fields };
+    // Whole-day bookings end at midnight the next day
+    const endsAt = startTime
+        ? new Date(y, m - 1, d, ...endTime.split(":").map(Number)).toISOString()
+        : new Date(y, m - 1, d + 1).toISOString();
+    return { id, bookingStatus: status, appointmentDate, startTime, endTime, startsAt, endsAt, ...fields };
 }
 
 const MALI = { id: "provider-mali", firstname: "Mali", lastname: "S.", profilePhotoUrl: null };
@@ -465,7 +469,20 @@ const myBookings = [
     mockBooking("bk-3", "CONFIRMED", 12, null, null, { totalPrice: 2200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
     mockBooking("bk-4", "COMPLETED", -9, "09:00", "11:00", { totalPrice: 900, service: COVERLESS(OLD_TOWN), provider: MALI }),
     mockBooking("bk-5", "REJECTED", -2, "15:00", "17:00", { totalPrice: 1200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
+    mockBooking("bk-6", "COMPLETED", -20, "06:00", "08:00", {
+        totalPrice: 1200,
+        service: COVERLESS(TEMPLE),
+        provider: ARTHIT,
+        review: { rating: 4, comment: "Great photo spots, a bit rushed at the end.", timestamp: new Date().toISOString() },
+    }),
+    // US6-5: one that ended yesterday and can be confirmed complete, and one
+    // happening today that can't be yet
+    mockBooking("bk-7", "IN_PROGRESS", -1, "09:00", "12:00", { totalPrice: 1350, service: COVERLESS(OLD_TOWN), provider: MALI }),
+    mockBooking("bk-8", "IN_PROGRESS", 0, null, null, { totalPrice: 2200, service: COVERLESS(TEMPLE), provider: ARTHIT }),
 ];
+
+const hasEnded = (item) => new Date(item.endsAt).getTime() <= Date.now();
+const canComplete = (item) => ["CONFIRMED", "IN_PROGRESS"].includes(item.bookingStatus) && hasEnded(item);
 
 const isUpcoming = (item) =>
     ["WAITING_FOR_CONFIRMATION", "CONFIRMED"].includes(item.bookingStatus) && new Date(item.startsAt).getTime() > Date.now();
@@ -481,6 +498,8 @@ export async function getMyBookings() {
             const items = myBookings.map((item) => ({
                 ...item,
                 canCancel: item.bookingStatus === "CONFIRMED" && isUpcoming(item),
+                canComplete: canComplete(item),
+                review: item.review ?? null,
             }));
             return {
                 upcoming: items.filter(isUpcoming).sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
@@ -510,4 +529,196 @@ export async function cancelBooking(bookingId) {
     }
     item.bookingStatus = "CANCELLED";
     return { booking: { id: item.id, bookingStatus: "CANCELLED" } };
+}
+
+// US6-5. Completions made through the mock stick until reload.
+export async function completeBooking(bookingId) {
+    await wait(500);
+    const url = `/api/bookings/${bookingId}/complete`;
+    const item = myBookings.find((candidate) => candidate.id === bookingId);
+    if (!item) throw httpError("PATCH", url, 404, "Not Found", { error: "Booking not found." });
+
+    switch (getMockScenario("completeBooking")) {
+        case "notEnded":
+            throw httpError("PATCH", url, 409, "Conflict", {
+                error: "You can confirm completion only after the booking has ended.",
+            });
+        case "network":
+            throw networkError();
+        default:
+    }
+    if (!["CONFIRMED", "IN_PROGRESS"].includes(item.bookingStatus)) {
+        throw httpError("PATCH", url, 409, "Conflict", { error: "Only a confirmed booking can be completed." });
+    }
+    if (!hasEnded(item)) {
+        throw httpError("PATCH", url, 409, "Conflict", {
+            error: "You can confirm completion only after the booking has ended.",
+        });
+    }
+    item.bookingStatus = "COMPLETED";
+    return { booking: { id: item.id, bookingStatus: "COMPLETED" } };
+}
+
+// ---------------------------------------------------------------------------
+// Edit / unpublish a service (US4-3). Changes stick until reload.
+// ---------------------------------------------------------------------------
+
+const MOCK_PENDING_REQUEST = {
+    id: "BK-1003",
+    customerName: "Nok P.",
+    appointmentDate: mockDateFromToday(8),
+    startTime: "09:00",
+    endTime: "12:00",
+};
+
+export async function getMyService(id) {
+    await wait();
+    const service = myServices.find((candidate) => candidate.id === id);
+    if (!service) throw httpError("GET", `/api/providers/me/services/${id}`, 404, "Not Found", { error: "Service not found." });
+
+    const pending = getMockScenario("unpublishService") === "pending";
+    return {
+        description: "We'll walk Yaowarat together and try 5 local stalls.",
+        categoryIds: [CATEGORIES[0].id],
+        ...service,
+        pendingRequestCount: pending ? 1 : 0,
+        confirmedBookingCount: 2,
+    };
+}
+
+export async function updateService(id, values) {
+    await wait(1000);
+    const url = `/api/services/${id}`;
+
+    switch (getMockScenario("editService")) {
+        case "validation":
+            throw httpError("PUT", url, 400, "Bad Request", {
+                errors: { rate: "rate must be greater than 0" },
+            });
+        case "network":
+            throw networkError();
+        default: {
+            const service = myServices.find((candidate) => candidate.id === id);
+            if (!service) throw httpError("PUT", url, 404, "Not Found", { error: "Service not found." });
+            Object.assign(service, {
+                title: values.title,
+                description: values.description,
+                location: values.location,
+                rate: Number(values.rate),
+                rateUnit: values.rateUnit,
+                startTime: values.startTime,
+                endTime: values.endTime,
+                categoryIds: values.categoryIds,
+                coverPhotoUrl: values.coverPhoto instanceof File ? URL.createObjectURL(values.coverPhoto) : values.coverPhotoUrl,
+            });
+            return { service: { ...service } };
+        }
+    }
+}
+
+export async function setServiceStatus(id, status) {
+    await wait();
+    const url = `/api/services/${id}/status`;
+
+    if (status === "UNPUBLISHED") {
+        switch (getMockScenario("unpublishService")) {
+            case "pending":
+                throw httpError("PATCH", url, 409, "Conflict", {
+                    error: "Please respond to pending requests first",
+                    pendingRequests: [MOCK_PENDING_REQUEST],
+                });
+            case "network":
+                throw networkError();
+            default:
+                break;
+        }
+    }
+
+    const service = myServices.find((candidate) => candidate.id === id);
+    if (!service) throw httpError("PATCH", url, 404, "Not Found", { error: "Service not found." });
+    service.status = status;
+    return { service: { id, status } };
+}
+
+// US8-1. Reviews made through the mock stick until reload.
+export async function createReview({ bookingId, rating, comment }) {
+    await wait(600);
+    const url = "/api/reviews";
+    const item = myBookings.find((candidate) => candidate.id === bookingId);
+    if (!item) throw httpError("POST", url, 404, "Not Found", { error: "Booking not found." });
+
+    switch (getMockScenario("createReview")) {
+        case "already":
+            throw httpError("POST", url, 409, "Conflict", { error: "You have already reviewed this booking." });
+        case "network":
+            throw networkError();
+        default:
+    }
+    if (item.bookingStatus !== "COMPLETED") {
+        throw httpError("POST", url, 400, "Bad Request", { error: "You can review a booking only after it is completed" });
+    }
+    if (item.review) throw httpError("POST", url, 409, "Conflict", { error: "You have already reviewed this booking." });
+
+    const review = {
+        id: `rv-${bookingId}`,
+        bookingId,
+        rating,
+        comment: comment || null,
+        timestamp: new Date().toISOString(),
+    };
+    item.review = { rating: review.rating, comment: review.comment, timestamp: review.timestamp };
+    return { review, provider: { id: item.provider.id, avgRating: rating, reviewCount: 1 } };
+}
+
+// ---------------------------------------------------------------------------
+// Provider reviews on the public profile (US8-2)
+// ---------------------------------------------------------------------------
+
+const REVIEW_AUTHORS = ["Nina", "Tom", "Ploy", "Ben", "Fah", "Sam", "Mint", "Anan"];
+const REVIEW_COMMENTS = [
+    "Knew every hidden food stall in the area. Would book again!",
+    "Friendly, on time and very patient with our questions.",
+    null,
+    "Great photo spots, a bit rushed at the end.",
+    "Made us feel like locals for a day.",
+    "Good trip overall, but we started late.",
+];
+const REVIEW_SERVICES = ["Old Town street food walk", "Temple morning photo walk"];
+
+// 14 reviews, newest first, so the default page size gives three pages
+const providerReviews = Array.from({ length: 14 }, (_, i) => ({
+    id: `mock-review-${i + 1}`,
+    author: REVIEW_AUTHORS[i % REVIEW_AUTHORS.length],
+    rating: [5, 5, 4, 4, 5, 3][i % 6],
+    comment: REVIEW_COMMENTS[i % REVIEW_COMMENTS.length],
+    date: new Date(Date.now() - (i * 5 + 1) * 24 * 60 * 60 * 1000).toISOString(),
+    serviceTitle: REVIEW_SERVICES[i % REVIEW_SERVICES.length],
+}));
+
+export async function getProviderReviews(providerId, { page = 1, limit = 6 } = {}) {
+    await wait();
+    let all;
+    switch (getMockScenario("providerReviews")) {
+        case "network":
+            throw networkError();
+        case "empty":
+            all = [];
+            break;
+        case "few":
+            all = providerReviews.slice(0, 3);
+            break;
+        default:
+            all = providerReviews;
+    }
+    const totalPages = Math.max(1, Math.ceil(all.length / limit));
+    const currentPage = Math.min(Math.max(1, page), totalPages);
+    const sum = all.reduce((total, review) => total + review.rating, 0);
+    return {
+        reviews: all.slice((currentPage - 1) * limit, currentPage * limit),
+        summary: {
+            avgRating: all.length ? Math.round((sum / all.length) * 10) / 10 : null,
+            reviewCount: all.length,
+        },
+        meta: { totalCount: all.length, currentPage, totalPages, limit },
+    };
 }

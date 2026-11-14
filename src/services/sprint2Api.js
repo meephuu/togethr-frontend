@@ -218,6 +218,40 @@ export async function getServiceById(id) {
     const { service } = await request(OpenAPI, { method: "GET", url: "/services/{id}", path: { id } });
     return service;
 }
+
+/**
+ * @typedef {Object} ProviderReview
+ * @property {string} id
+ * @property {string} author the customer's first name
+ * @property {number} rating 1-5
+ * @property {string|null} comment
+ * @property {string} date ISO timestamp
+ * @property {string} serviceTitle the reviewed service
+ */
+
+/**
+ * One page of the reviews on all of a provider's services, newest first, for
+ * the provider's public profile (US8-2). Public, no login needed.
+ * GET /api/providers/:id/reviews?page=1&limit=6
+ * → { reviews: ProviderReview[],
+ *     summary: { avgRating: number|null, reviewCount: number },
+ *     meta: { totalCount, currentPage, totalPages, limit } }
+ * - summary covers every review, not just this page; avgRating is null when
+ *   there are none
+ * - 404 when the user doesn't exist or isn't a provider
+ * @param {string} providerId
+ * @param {{ page?: number, limit?: number }} [options]
+ * @returns {Promise<{ reviews: ProviderReview[], summary: { avgRating: number|null, reviewCount: number }, meta: { totalCount: number, currentPage: number, totalPages: number, limit: number } }>}
+ */
+export async function getProviderReviews(providerId, { page = 1, limit = 6 } = {}) {
+    if (USE_MOCKS) return mocks.getProviderReviews(providerId, { page, limit });
+    return request(OpenAPI, {
+        method: "GET",
+        url: "/providers/{id}/reviews",
+        path: { id: providerId },
+        query: { page, limit },
+    });
+}
 /**
  * ส่งคำขอจอง slot ของ service (US6-1)
  * slot มาจาก getServiceById(id).availableSlots
@@ -288,13 +322,21 @@ export async function updateBookingStatus(bookingId, status) {
 /**
  * @typedef {Object} MyBooking
  * @property {string} id
- * @property {"WAITING_FOR_CONFIRMATION"|"CONFIRMED"|"REJECTED"|"EXPIRED"|"CANCELLED"|"COMPLETED"} bookingStatus
+ * @property {"WAITING_FOR_CONFIRMATION"|"CONFIRMED"|"IN_PROGRESS"|"REJECTED"|"EXPIRED"|"CANCELLED"|"COMPLETED"} bookingStatus
+ *   IN_PROGRESS: a confirmed booking whose start time has passed (set by the
+ *   server's scheduled job, US6-5)
  * @property {string} appointmentDate "YYYY-MM-DD"
  * @property {string|null} startTime "HH:MM", null for a whole-day booking
  * @property {string|null} endTime
  * @property {number|null} totalPrice
  * @property {string} startsAt ISO time the booking begins
+ * @property {string} [endsAt] ISO time the booking ends (US6-5). When the
+ *   server doesn't send it, the page works it out from startsAt and the times.
  * @property {boolean} canCancel confirmed and not started yet
+ * @property {boolean} [canComplete] confirmed or in progress, and its end time
+ *   has passed (US6-5). Worked out on the page when the server doesn't send it.
+ * @property {{ rating: number, comment: string|null, timestamp: string }|null} review
+ *   the customer's review of a completed booking, null until they write one
  * @property {{ id: string, title: string, location: string, coverPhotoUrl: string|null }} service
  * @property {{ id: string, firstname: string, lastname: string, profilePhotoUrl: string|null }} provider
  */
@@ -366,6 +408,130 @@ export async function cancelBooking(bookingId) {
     return request(OpenAPI, {
         method: "PATCH",
         url: "/bookings/{id}/cancel",
+        path: { id: bookingId },
+    });
+}
+
+// ---------------------------------------------------------------------------
+// US4-3: edit or unpublish a service
+// ---------------------------------------------------------------------------
+
+/**
+ * One of the signed-in provider's own services, for the edit page. Unlike
+ * GET /api/services/:id it also returns unpublished services and the counts the
+ * page needs. GET /api/providers/me/services/:id
+ * → { service: Service & { description, categoryIds, pendingRequestCount, confirmedBookingCount } }
+ * - 403 when it belongs to another provider; 404 when it doesn't exist
+ * @param {string} id
+ */
+export async function getMyService(id) {
+    if (USE_MOCKS) return mocks.getMyService(id);
+    const { service } = await request(OpenAPI, {
+        method: "GET",
+        url: "/providers/me/services/{id}",
+        path: { id },
+    });
+    return service;
+}
+
+/**
+ * Saves the edit form. A new cover photo (a File) is uploaded first, the same
+ * way createService does it; otherwise the current coverPhotoUrl is kept.
+ * PUT /api/services/:id (JSON, same fields as POST /api/services)
+ * - 200 { service }. The new rate is used for bookings made from now on;
+ *   confirmed bookings keep the price they were booked at (US4-3).
+ * - 400 { error, errors: { field: message } }; 403 not your service; 404
+ * @param {string} id
+ * @param {NewService & { coverPhotoUrl: string|null }} values
+ * @returns {Promise<{ service: Service }>}
+ */
+export async function updateService(id, values) {
+    if (USE_MOCKS) return mocks.updateService(id, values);
+
+    let coverPhotoUrl = values.coverPhotoUrl ?? null;
+    if (values.coverPhoto instanceof File) {
+        const upload = await request(OpenAPI, {
+            method: "POST",
+            url: "/upload",
+            formData: { image: values.coverPhoto },
+        });
+        coverPhotoUrl = upload.url;
+    }
+
+    return request(OpenAPI, {
+        method: "PUT",
+        url: "/services/{id}",
+        path: { id },
+        mediaType: "application/json",
+        body: {
+            title: values.title,
+            description: values.description,
+            location: values.location,
+            rate: Number(values.rate),
+            rateUnit: values.rateUnit,
+            startTime: values.startTime,
+            endTime: values.endTime,
+            categoryIds: values.categoryIds,
+            coverPhotoUrl,
+        },
+    });
+}
+
+/**
+ * Publishes or unpublishes a service.
+ * PATCH /api/services/:id/status { status: "PUBLISHED" | "UNPUBLISHED" }
+ * - 200 { service: { id, status } }
+ * - 409 { error: "Please respond to pending requests first", pendingRequests: [...] }
+ *   when unpublishing a service that still has WAITING_FOR_CONFIRMATION bookings
+ * @param {string} id
+ * @param {"PUBLISHED"|"UNPUBLISHED"} status
+ */
+export async function setServiceStatus(id, status) {
+    if (USE_MOCKS) return mocks.setServiceStatus(id, status);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/services/{id}/status",
+        path: { id },
+        mediaType: "application/json",
+        body: { status },
+    });
+}
+
+/**
+ * The customer rates and reviews the provider of a completed booking (US8-1).
+ * POST /api/reviews { bookingId, rating 1-5, comment? (max 1000 chars) }
+ * - 201 { review, provider: { id, avgRating, reviewCount } }
+ * - 409 when this booking already has a review
+ * - 400 when the booking isn't completed or the input is invalid
+ * - 403 for anyone but the booking's customer; 404 when it doesn't exist
+ * @param {{ bookingId: string, rating: number, comment?: string }} values
+ * @returns {Promise<{ review: { id: string, bookingId: string, rating: number, comment: string|null, timestamp: string }, provider: Object }>}
+ */
+export async function createReview(values) {
+    if (USE_MOCKS) return mocks.createReview(values);
+    return request(OpenAPI, {
+        method: "POST",
+        url: "/reviews",
+        body: values,
+        mediaType: "application/json",
+    });
+}
+
+/**
+ * The customer confirms a trip is over, which unlocks the review form (US6-5).
+ * PATCH /api/bookings/:id/complete
+ * - 200 { booking } with bookingStatus "COMPLETED"
+ * - 409 when the booking hasn't ended yet, or isn't confirmed / in progress
+ *   (e.g. already completed or cancelled)
+ * - 403 for anyone but the booking's customer; 404 when it doesn't exist
+ * @param {string} bookingId
+ * @returns {Promise<{ booking: Object }>}
+ */
+export async function completeBooking(bookingId) {
+    if (USE_MOCKS) return mocks.completeBooking(bookingId);
+    return request(OpenAPI, {
+        method: "PATCH",
+        url: "/bookings/{id}/complete",
         path: { id: bookingId },
     });
 }

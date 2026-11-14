@@ -113,7 +113,8 @@ export default function SignUpPage() {
 
             const signedInUser = loginResponse.user ?? response.user;
             setUser(signedInUser);
-            navigate(dashboardFor(signedInUser), { replace: true });
+            // The dashboard shows "Registration successful" (US1-1, TC01)
+            navigate(dashboardFor(signedInUser), { replace: true, state: { registered: true } });
         } catch (error) {
             if (error instanceof ApiError) {
                 setApiError(
