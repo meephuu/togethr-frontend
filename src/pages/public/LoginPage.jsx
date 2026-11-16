@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 import { useAuth } from "../../hooks/useAuth";
-import { ApiError, AuthService } from "../../services/generated";
+import { ApiError, AuthService, UsersService } from "../../services/generated";
 import PasswordInput from "../../components/ui/PasswordInput";
 import { dashboardFor } from "../../lib/roles";
 
@@ -32,6 +32,18 @@ const LoginPage = () => {
                 requestBody: { ...credentials, password },
             });
 
+            // A successful login response does not prove the browser accepted
+            // its cookie. Verify a credentialed request before entering the app.
+            try {
+                await UsersService.getMyProfile();
+            } catch (sessionError) {
+                setUser(null);
+                if (sessionError instanceof ApiError && sessionError.status === 401) {
+                    setErrorMessage("Your sign-in session could not be saved. Please check your browser cookie settings or contact support.");
+                    return;
+                }
+                throw sessionError;
+            }
             setUser(response.user);
             navigate(dashboardFor(response.user), { replace: true });
         } catch (error) {
