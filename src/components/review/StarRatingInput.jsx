@@ -2,7 +2,7 @@ import { useState } from "react";
 import { StarFilledIcon } from "../ui/Icons";
 
 // Words shown under the stars, so a rating means the same thing to everyone
-export const RATING_LABELS = {
+const RATING_LABELS = {
     1: "Poor",
     2: "Fair",
     3: "Good",

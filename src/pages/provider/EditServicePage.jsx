@@ -28,7 +28,7 @@ import {
     validateService,
 } from "../../lib/serviceValidation";
 import { RATE_UNIT_LABEL, formatBaht } from "../../lib/format";
-import { CARD_CLASS, ERROR_TEXT_CLASS, HELPER_TEXT_CLASS, LABEL_CLASS, inputClass } from "../../lib/styles";
+import { CARD_CLASS, ERROR_TEXT_CLASS, LABEL_CLASS, inputClass } from "../../lib/styles";
 
 const SECTION_CLASS = `${CARD_CLASS} flex flex-col gap-5 p-6 sm:p-8`;
 
